@@ -6,6 +6,7 @@
 !/.gitattributes
 !/Minigin.sln
 !/Minigin.sln.DotSettings
+!/README.md
 !/vld.props
 
 # Folder to not ignore
