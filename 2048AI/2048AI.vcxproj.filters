@@ -21,6 +21,9 @@
     <ClCompile Include="GameCommands.cpp">
       <Filter>Others</Filter>
     </ClCompile>
+    <ClCompile Include="GameLogic.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NumberSquare.h">
@@ -31,6 +34,9 @@
     </ClInclude>
     <ClInclude Include="Factory.h">
       <Filter>Others</Filter>
+    </ClInclude>
+    <ClInclude Include="GameLogic.h">
+      <Filter>Components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

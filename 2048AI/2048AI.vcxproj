@@ -174,11 +174,13 @@
     <ClCompile Include="2048AI.cpp" />
     <ClCompile Include="Factory.cpp" />
     <ClCompile Include="GameCommands.cpp" />
+    <ClCompile Include="GameLogic.cpp" />
     <ClCompile Include="NumberSquare.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Factory.h" />
     <ClInclude Include="GameCommands.h" />
+    <ClInclude Include="GameLogic.h" />
     <ClInclude Include="NumberSquare.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

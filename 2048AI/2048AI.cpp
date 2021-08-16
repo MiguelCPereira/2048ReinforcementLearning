@@ -1,5 +1,6 @@
 // Project includes
 #define SDL_MAIN_HANDLED
+#include <ctime>
 #include <Minigin.h>
 #include <string>
 #include "Factory.h"
@@ -14,6 +15,8 @@ void SetUpGame();
 
 int main(int, char* [])
 {
+	srand((unsigned)time(nullptr));
+	
 	dae::Minigin engine;
 	engine.Initialize();
 	//engine.LoadDemo();
@@ -33,12 +36,13 @@ void SetUpGame()
 	const auto backgroundGO = MakeBackground();
 	scene.Add(backgroundGO);
 
-	// Make the score display
-	scene.Add(MakeScoreDisplay());
+	// Make the game logic
+	const auto gameLogicGO = MakeGameLogic();
+	scene.Add(gameLogicGO);
 
-	// Make some test numberSquares
-	scene.Add(MakeNumberSquare(2, 1));
-	scene.Add(MakeNumberSquare(4, 7));
-	scene.Add(MakeNumberSquare(8, 2));
-	scene.Add(MakeNumberSquare(2, 12));
+	// Make the score display
+	scene.Add(MakeScoreDisplay(gameLogicGO));
+
+	// Set up the temporary player input
+	SetUpPlayerInput(gameLogicGO);
 }

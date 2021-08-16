@@ -1,9 +1,11 @@
 #include "NumberSquare.h"
+#include "GameObject.h"
 
-NumberSquare::NumberSquare(const std::shared_ptr<dae::GameObject>& gameObject, int number, int boardPosIdx)
+NumberSquare::NumberSquare(const std::shared_ptr<dae::GameObject>& gameObject, int number, int rowIdx, int colIdx)
 	: m_GameObject(gameObject)
 	, m_Number(number)
-	, m_BoardPosIdx(boardPosIdx)
+	, m_RowPosIdx(rowIdx)
+	, m_ColPosIdx(colIdx)
 {
 }
 
@@ -11,18 +13,37 @@ void NumberSquare::Update(const float)
 {
 }
 
+void NumberSquare::GetDestroyed() const
+{
+	m_GameObject->RemoveAllComponents();
+}
 
 int NumberSquare::GetNumber() const
 {
 	return m_Number;
 }
 
-int NumberSquare::GetBoardPosIdx() const
+int NumberSquare::GetRowPosIdx() const
 {
-	return m_BoardPosIdx;
+	return m_RowPosIdx;
 }
 
-void NumberSquare::SetBoardPosIdx(int newBoardPos)
+int NumberSquare::GetColPosIdx() const
 {
-	m_BoardPosIdx = newBoardPos;
+	return m_ColPosIdx;
+}
+
+void NumberSquare::SetNumber(int newNumber)
+{
+	m_Number = newNumber;
+}
+
+void NumberSquare::SetRowPosIdx(int newRowPos)
+{
+	m_RowPosIdx = newRowPos;
+}
+
+void NumberSquare::SetColPosIdx(int newColPos)
+{
+	m_ColPosIdx = newColPos;
 }
