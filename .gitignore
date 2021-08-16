@@ -4,8 +4,8 @@
 # Files to not ignore
 !/.gitignore
 !/.gitattributes
-!/Minigin.sln
-!/Minigin.sln.DotSettings
+!/ReinforcementLearning.sln
+!/ReinforcementLearning.sln.DotSettings
 !/README.md
 !/vld.props
 

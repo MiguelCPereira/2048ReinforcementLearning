@@ -5,23 +5,23 @@
 class SwipeLeftCommand final : public dae::Command
 {
 public:
-	void Execute() override { /*GetActor()->GetComponent<GameManager>()->SwipeLeft();*/ }
+	void Execute() override { /*GetActor()->GetComponent<GameLogic>()->SwipeLeft();*/ }
 };
 
 class SwipeRightCommand final : public dae::Command
 {
 public:
-	void Execute() override { /*GetActor()->GetComponent<GameManager>()->SwipeRight();*/ }
+	void Execute() override { /*GetActor()->GetComponent<GameLogic>()->SwipeRight();*/ }
 };
 
 class SwipeUpCommand final : public dae::Command
 {
 public:
-	void Execute() override { /*GetActor()->GetComponent<GameManager>()->SwipeUp();*/ }
+	void Execute() override { /*GetActor()->GetComponent<GameLogic>()->SwipeUp();*/ }
 };
 
 class SwipeDownCommand final : public dae::Command
 {
 public:
-	void Execute() override { /*GetActor()->GetComponent<GameManager>()->SwipeDown();*/ }
+	void Execute() override { /*GetActor()->GetComponent<GameLogic>()->SwipeDown();*/ }
 };
