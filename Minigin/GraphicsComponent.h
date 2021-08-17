@@ -27,6 +27,8 @@ namespace dae
 		void MINIGIN_ENTRY SetSrcRectangle(float x, float y, float width, float height);
 		void MINIGIN_ENTRY SetHidden(bool isHidden);
 
+		MINIGIN_ENTRY std::pair<float, float> GetPosition() const { return std::make_pair(m_PosX, m_PosY); }
+
 		float GetPosX() { return m_PosX; }
 		float GetPosY() { return m_PosY; }
 		float GetWidth() { return m_Width; }

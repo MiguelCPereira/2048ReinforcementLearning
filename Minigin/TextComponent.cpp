@@ -73,3 +73,9 @@ void dae::TextComponent::SetPosition(const float x, const float y) const
 	m_Transform->SetPosition(x, y, 0.0f);
 }
 
+std::pair<float, float> dae::TextComponent::GetPosition() const
+{
+	return std::make_pair(m_Transform->GetPosition().x, m_Transform->GetPosition().y);
+}
+
+

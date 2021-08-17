@@ -16,6 +16,7 @@ namespace dae
 
 		MINIGIN_ENTRY void SetText(const std::string& text);
 		MINIGIN_ENTRY void SetPosition(float x, float y) const;
+		MINIGIN_ENTRY std::pair<float, float> GetPosition() const;
 
 		explicit MINIGIN_ENTRY TextComponent(const std::string& text, const std::shared_ptr<Font>& font);
 		explicit MINIGIN_ENTRY TextComponent(const std::string& text, const std::shared_ptr<Font>& font, int colorR, int colorG, int colorB);

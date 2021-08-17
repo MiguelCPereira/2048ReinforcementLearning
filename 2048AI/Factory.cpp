@@ -10,13 +10,15 @@
 #include "TextComponent.h"
 //#include "ScoreDisplay.h"
 
-float g_BoardStartX = 155.f;
-float g_BoardStartY = 80.f;
+const auto g_BoardStartX = 155.f;
+const auto g_BoardStartY = 80.f;
+const auto g_SquareSize = 70.f;
+const auto g_SpaceBetweenSquares = 9.6f;
 
 std::shared_ptr<dae::GameObject> MakeGameLogic()
 {
 	auto gameLogicGO = std::make_shared<dae::GameObject>();
-	gameLogicGO->AddComponent(new GameLogic(gameLogicGO));
+	gameLogicGO->AddComponent(new GameLogic(gameLogicGO, g_BoardStartX, g_BoardStartY, g_SquareSize + g_SpaceBetweenSquares));
 
 	return gameLogicGO;
 }
@@ -51,18 +53,16 @@ std::shared_ptr<dae::GameObject> MakeNumberSquare(int number, int rowIdx, int co
 {
 	const auto numberTextOffsetX = 8.f;
 	const auto numberTextOffsetY = 10.f;
-	const auto squareSize = 70.f;
-	const auto spaceBetweenSquares = 9.6f;
 	auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 26);
 
-	const auto posX = g_BoardStartX + spaceBetweenSquares + float(rowIdx) * (squareSize + spaceBetweenSquares);
-	const auto posY = g_BoardStartY + spaceBetweenSquares + float(colIdx) * (squareSize + spaceBetweenSquares);
+	const auto posX = g_BoardStartX + g_SpaceBetweenSquares + float(colIdx) * (g_SquareSize + g_SpaceBetweenSquares);
+	const auto posY = g_BoardStartY + g_SpaceBetweenSquares + float(rowIdx) * (g_SquareSize + g_SpaceBetweenSquares);
 
 	auto numberSquareGO = std::make_shared<dae::GameObject>();
 	numberSquareGO->AddComponent(new NumberSquare(numberSquareGO, number, rowIdx, colIdx));
-	numberSquareGO->AddComponent(new dae::GraphicsComponent("Number Square.png", posX, posY, squareSize, squareSize));
+	numberSquareGO->AddComponent(new dae::GraphicsComponent("Number Square.png", posX, posY, g_SquareSize, g_SquareSize));
 	numberSquareGO->AddComponent(new dae::TextComponent(std::to_string(number), font, 119, 110, 101));
-	numberSquareGO->GetComponent<dae::TextComponent>()->SetPosition(posX + squareSize / 2.f - numberTextOffsetX, posY + squareSize / 2.f - numberTextOffsetY);
+	numberSquareGO->GetComponent<dae::TextComponent>()->SetPosition(posX + g_SquareSize / 2.f - numberTextOffsetX, posY + g_SquareSize / 2.f - numberTextOffsetY);
 	
 	return numberSquareGO;
 }

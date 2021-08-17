@@ -19,14 +19,15 @@ public:
 	int GetNumber() const;
 	int GetRowPosIdx() const;
 	int GetColPosIdx() const;
-	void SetNumber(int newNumber);
-	void SetRowPosIdx(int newRowPos);
-	void SetColPosIdx(int newColPos);
+	void SetNumberBuffer(int newNumber);
+	void SetRowPosIdxBuffer(int newRowPos);
+	void SetColPosIdxBuffer(int newColPos);
+	void UpdateValues();
 
 private:
 	std::shared_ptr<dae::GameObject> m_GameObject;
-	int m_Number;
-	int m_RowPosIdx;
-	int m_ColPosIdx;
+	int m_Number, m_NumberBuffer;
+	int m_RowPosIdx, m_RowPosIdxBuffer;
+	int m_ColPosIdx, m_ColPosIdxBuffer;
 };
 

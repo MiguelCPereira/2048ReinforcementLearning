@@ -6,7 +6,7 @@
 class GameLogic final : public dae::BaseComponent
 {
 public:
-	explicit GameLogic(const std::shared_ptr<dae::GameObject>& gameObject);
+	explicit GameLogic(const std::shared_ptr<dae::GameObject>& gameObject, float boardStartX, float boardStartY, float squareSpacing);
 
 	GameLogic(const GameLogic& other) = delete;
 	GameLogic(GameLogic&& other) noexcept = delete;
@@ -31,5 +31,6 @@ private:
 	std::vector<std::shared_ptr<dae::GameObject>>* m_NumberSquaresVector{};
 	std::vector<std::pair<int, int>> m_FreeSquares{};
 	int m_Score;
+	const float m_BoardStartX, m_BoardStartY, m_SquareSpacing;
 };
 
