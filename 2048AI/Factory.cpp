@@ -7,6 +7,7 @@
 #include "GameLogic.h"
 #include "InputManager.h"
 #include "NumberSquare.h"
+#include "ScoreDisplay.h"
 #include "TextComponent.h"
 //#include "ScoreDisplay.h"
 
@@ -18,7 +19,7 @@ const auto g_SpaceBetweenSquares = 9.6f;
 std::shared_ptr<dae::GameObject> MakeGameLogic()
 {
 	auto gameLogicGO = std::make_shared<dae::GameObject>();
-	gameLogicGO->AddComponent(new GameLogic(gameLogicGO, g_BoardStartX, g_BoardStartY, g_SquareSize + g_SpaceBetweenSquares));
+	gameLogicGO->AddComponent(new GameLogic(gameLogicGO, g_SquareSize + g_SpaceBetweenSquares));
 
 	return gameLogicGO;
 }
@@ -33,18 +34,18 @@ std::shared_ptr<dae::GameObject> MakeBackground()
 	return backgroundGO;
 }
 
-std::shared_ptr<dae::GameObject> MakeScoreDisplay(std::shared_ptr<dae::GameObject> /*gameLogic*/)
+std::shared_ptr<dae::GameObject> MakeScoreDisplay(const std::shared_ptr<dae::GameObject>& gameLogic)
 {
-	//const auto* gameLogicComp = gameLogic->GetComponent<GameLogic>();
+	auto* gameLogicComp = gameLogic->GetComponent<GameLogic>();
 	const auto posX = 20.f;
 	const auto posY = 20.f;
 
 	auto scoreGO = std::make_shared<dae::GameObject>();
 
-	const auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 18);
+	const auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 23);
 	scoreGO->AddComponent(new dae::TextComponent("SCORE: FAIL", font, 238, 228, 218));
 	scoreGO->GetComponent<dae::TextComponent>()->SetPosition(posX, posY);
-	//scoreGO->AddComponent(new ScoreDisplay(gameLogicComp, scoreGO->GetComponent<dae::TextComponent>()));
+	scoreGO->AddComponent(new ScoreDisplay(gameLogicComp, scoreGO->GetComponent<dae::TextComponent>()));
 
 	return scoreGO;
 }
@@ -59,7 +60,7 @@ std::shared_ptr<dae::GameObject> MakeNumberSquare(int number, int rowIdx, int co
 	const auto posY = g_BoardStartY + g_SpaceBetweenSquares + float(rowIdx) * (g_SquareSize + g_SpaceBetweenSquares);
 
 	auto numberSquareGO = std::make_shared<dae::GameObject>();
-	numberSquareGO->AddComponent(new NumberSquare(numberSquareGO, number, rowIdx, colIdx));
+	numberSquareGO->AddComponent(new NumberSquare(numberSquareGO, number, rowIdx, colIdx, g_SquareSize + g_SpaceBetweenSquares));
 	numberSquareGO->AddComponent(new dae::GraphicsComponent("Number Square.png", posX, posY, g_SquareSize, g_SquareSize));
 	numberSquareGO->AddComponent(new dae::TextComponent(std::to_string(number), font, 119, 110, 101));
 	numberSquareGO->GetComponent<dae::TextComponent>()->SetPosition(posX + g_SquareSize / 2.f - numberTextOffsetX, posY + g_SquareSize / 2.f - numberTextOffsetY);

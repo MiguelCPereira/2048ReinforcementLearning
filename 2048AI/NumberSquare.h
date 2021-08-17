@@ -5,7 +5,7 @@
 class NumberSquare final : public dae::BaseComponent
 {
 public:
-	explicit NumberSquare(const std::shared_ptr<dae::GameObject>& gameObject, int number, int rowIdx, int colIdx);
+	explicit NumberSquare(const std::shared_ptr<dae::GameObject>& gameObject, int number, int rowIdx, int colIdx, float spaceBetweenSquares);
 	~NumberSquare() = default;
 	void Update(const float deltaTime) override;
 
@@ -15,19 +15,22 @@ public:
 	NumberSquare& operator=(NumberSquare&& other) noexcept = delete;
 
 	void GetDestroyed() const;
-	
-	int GetNumber() const;
+
+	bool GetHasJustCollapsed() const { return m_HasJustCollapsed; }
+	int GetValue() const;
 	int GetRowPosIdx() const;
 	int GetColPosIdx() const;
-	void SetNumberBuffer(int newNumber);
+	void SetValueBuffer(int newValue);
 	void SetRowPosIdxBuffer(int newRowPos);
 	void SetColPosIdxBuffer(int newColPos);
 	void UpdateValues();
 
 private:
 	std::shared_ptr<dae::GameObject> m_GameObject;
-	int m_Number, m_NumberBuffer;
+	int m_Value, m_ValueBuffer;
 	int m_RowPosIdx, m_RowPosIdxBuffer;
 	int m_ColPosIdx, m_ColPosIdxBuffer;
+	float m_SquareSpacing;
+	bool m_HasJustCollapsed;
 };
 

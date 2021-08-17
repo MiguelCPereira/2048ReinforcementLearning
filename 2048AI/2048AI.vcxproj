@@ -176,12 +176,14 @@
     <ClCompile Include="GameCommands.cpp" />
     <ClCompile Include="GameLogic.cpp" />
     <ClCompile Include="NumberSquare.cpp" />
+    <ClCompile Include="ScoreDisplay.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Factory.h" />
     <ClInclude Include="GameCommands.h" />
     <ClInclude Include="GameLogic.h" />
     <ClInclude Include="NumberSquare.h" />
+    <ClInclude Include="ScoreDisplay.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

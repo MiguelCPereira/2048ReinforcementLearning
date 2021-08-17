@@ -5,16 +5,12 @@
 #include "NumberSquare.h"
 #include "SceneManager.h"
 #include "Scene.h"
-#include "GraphicsComponent.h"
-#include "TextComponent.h"
 
-GameLogic::GameLogic(const std::shared_ptr<dae::GameObject>& gameObject, float boardStartX, float boardStartY, float squareSpacing)
+GameLogic::GameLogic(const std::shared_ptr<dae::GameObject>& gameObject, float squareSpacing)
 	: m_GameObject(gameObject)
 	, m_NumberSquaresVector()
 	, m_FreeSquares()
 	, m_Score()
-	, m_BoardStartX(boardStartX)
-	, m_BoardStartY(boardStartY)
 	, m_SquareSpacing(squareSpacing)
 {
 	Initialize();
@@ -41,16 +37,28 @@ void GameLogic::Update(const float)
 {
 }
 
-void GameLogic::CreateRandomNumberSquare()
+void GameLogic::CreateRandomNumberSquare(int value, int rowIdx, int colIdx)
 {
-	int randomNumber = 2;
-	if (rand() % 3 + 1 == 3) // One third chance it's a 4 instead of a 2
-		randomNumber = 4;
+	int newSquareValue;
+	std::pair<int,int> newSquareIdx;
+	
+	if (value == 0)
+	{
+		newSquareValue = 2;
+		if (rand() % 3 + 1 == 3) // One third chance it's a 4 instead of a 2
+			newSquareValue = 4;
 
-	const auto randomIdx = m_FreeSquares[rand() % m_FreeSquares.size()];
-	m_FreeSquares.erase(std::remove(m_FreeSquares.begin(), m_FreeSquares.end(), randomIdx), m_FreeSquares.end());
+		newSquareIdx = m_FreeSquares[rand() % m_FreeSquares.size()];
+	}
+	else
+	{
+		newSquareValue = value;
+		newSquareIdx.first = rowIdx;
+		newSquareIdx.second = colIdx;
+	}
 
-	const auto newNumberSquareGO = MakeNumberSquare(randomNumber, randomIdx.first, randomIdx.second);
+	m_FreeSquares.erase(std::remove(m_FreeSquares.begin(), m_FreeSquares.end(), newSquareIdx), m_FreeSquares.end());
+	const auto newNumberSquareGO = MakeNumberSquare(newSquareValue, newSquareIdx.first, newSquareIdx.second);
 	dae::SceneManager::GetInstance().GetCurrentScene()->Add(newNumberSquareGO);
 	m_NumberSquaresVector->push_back(newNumberSquareGO);
 }
@@ -70,48 +78,91 @@ void GameLogic::RestartGame()
 	Initialize();
 }
 
+
+
 void GameLogic::SwipeLeft()
 {
-	std::cout << "Left\n";
+	bool piecesMoved = false;
 	std::vector<std::pair<int, int>> occupiedSquares;
 
-	const auto totalNumberSquares = m_NumberSquaresVector->size();
+	auto totalNumberSquares = m_NumberSquaresVector->size();
 	for(auto i = totalNumberSquares; i > 0; i--)
 	{
 		// Get all the needed info from the current number square
 		const auto& currentNumSquare = m_NumberSquaresVector->operator[](i - 1);
-		auto numSquareRow = currentNumSquare->GetComponent<NumberSquare>()->GetRowPosIdx();
-		auto numSquareCol = currentNumSquare->GetComponent<NumberSquare>()->GetColPosIdx();
+		auto* currentNumSquareComp = currentNumSquare->GetComponent<NumberSquare>();
+		auto numSquareRow = currentNumSquareComp->GetRowPosIdx();
+		auto numSquareCol = currentNumSquareComp->GetColPosIdx();
+		const auto numSquareValue = currentNumSquareComp->GetValue();
 
 		// Calculate to which column will it move, by taking into account the other number squares in the way
+		// Also, if it collides with any square, save it
 		int nrSquaresInTheWay = 0;
+		std::shared_ptr<dae::GameObject> collisionSquare;
 		for (auto e = totalNumberSquares; e > 0; e--)
 		{
-			const auto& otherSquare = m_NumberSquaresVector->operator[](e - 1)->GetComponent<NumberSquare>();
-			if (otherSquare->GetRowPosIdx() == numSquareRow && otherSquare->GetColPosIdx() < numSquareCol)
+			auto otherSquare = m_NumberSquaresVector->operator[](e - 1);
+			const auto* otherSquareComp = otherSquare->GetComponent<NumberSquare>();
+			if (otherSquareComp->GetRowPosIdx() == numSquareRow && otherSquareComp->GetColPosIdx() < numSquareCol)
+			{
+				if (collisionSquare != nullptr)
+				{
+					const auto otherSquareColDist = numSquareCol - otherSquareComp->GetColPosIdx();
+					const auto currentColSquareDist = numSquareCol - collisionSquare->GetComponent<NumberSquare>()->GetColPosIdx();
+					if (otherSquareColDist < currentColSquareDist)
+						collisionSquare = otherSquare;
+				}
+				else collisionSquare = otherSquare;
+
 				nrSquaresInTheWay++;
+			}
 		}
 
-		auto occupiedSpace = std::make_pair(numSquareRow, nrSquaresInTheWay);
+		bool squaresCollapsed = false;
 		auto freedSpace = std::make_pair(numSquareRow, numSquareCol);
-
-		// If the square moves
-		if (occupiedSpace != freedSpace)
+		
+		// If there was a collision
+		if (collisionSquare != nullptr)
 		{
-			// Save the newly occupied space and add the freed square to the vector
-			m_FreeSquares.push_back(freedSpace);
-			occupiedSquares.push_back(occupiedSpace);
+			auto* collisionSquareComp = collisionSquare->GetComponent<NumberSquare>();
+			
+			// If the colliding pieces have the same value
+			if(collisionSquareComp->GetValue() == numSquareValue)
+			{
+				// And if none of them has collapsed already in this swipe
+				if (collisionSquareComp->GetHasJustCollapsed() == false)
+				{
+					// Destroy the one currently moving and double the value of the other one
+					currentNumSquareComp->GetDestroyed();
+					totalNumberSquares--;
+					m_NumberSquaresVector->erase(std::remove(m_NumberSquaresVector->begin(), m_NumberSquaresVector->end(), currentNumSquare), m_NumberSquaresVector->end());
+					const auto newValue = collisionSquareComp->GetValue() * 2;
+					collisionSquareComp->SetValueBuffer(newValue);
+					m_FreeSquares.push_back(freedSpace);
+					squaresCollapsed = true;
+					m_Score += newValue;
+					m_Subject->Notify(dae::Event::ScoreIncreased);
+				}
+			}
+		}
 
-			// Move the square, changing both its graphics and its position indexes
-			currentNumSquare->GetComponent<NumberSquare>()->SetColPosIdxBuffer(nrSquaresInTheWay);
+		if (squaresCollapsed == false)
+		{
+			auto occupiedSpace = std::make_pair(numSquareRow, nrSquaresInTheWay);
 
-			auto* graphicsComponent = currentNumSquare->GetComponent<dae::GraphicsComponent>();
-			graphicsComponent->SetPosition(graphicsComponent->GetPosition().first - m_SquareSpacing * float(numSquareCol - nrSquaresInTheWay),
-				graphicsComponent->GetPosition().second);
+			// If the square moves
+			if (occupiedSpace != freedSpace)
+			{
+				// Update the bool
+				piecesMoved = true;
+				
+				// Save the newly occupied space and add the freed square to the vector
+				m_FreeSquares.push_back(freedSpace);
+				occupiedSquares.push_back(occupiedSpace);
 
-			const auto* textComponent = currentNumSquare->GetComponent<dae::TextComponent>();
-			textComponent->SetPosition(textComponent->GetPosition().first - m_SquareSpacing * float(numSquareCol - nrSquaresInTheWay),
-				textComponent->GetPosition().second);
+				// Move the square, changing its position index
+				currentNumSquareComp->SetColPosIdxBuffer(nrSquaresInTheWay);
+			}
 		}
 	}
 
@@ -126,55 +177,112 @@ void GameLogic::SwipeLeft()
 	for (auto newOccupiedSquare : occupiedSquares)
 		m_FreeSquares.erase(std::remove(m_FreeSquares.begin(), m_FreeSquares.end(), newOccupiedSquare), m_FreeSquares.end());
 
-	// Create a new random square or restart the game if the board is full
-	if (m_FreeSquares.empty() == false)
+	
+	// If anything moved, create a new random square
+	if (piecesMoved)
 		CreateRandomNumberSquare();
-	else
-		RestartGame();
+
+	// If, with the new piece, the board is now full
+	if(m_FreeSquares.empty())
+	{
+		// Test if any future move can clear a space on the board
+		if(TestSwipeLeft() == false)
+		{
+			if(TestSwipeRight() == false)
+			{
+				if(TestSwipeDown() == false)
+				{
+					if(TestSwipeUp() == false) // And if not, restart the game
+						RestartGame();
+				}
+			}
+		}
+	}
 }
 
 void GameLogic::SwipeRight()
 {
-	std::cout << "Right\n";
+	bool piecesMoved = false;
 	std::vector<std::pair<int, int>> occupiedSquares;
-	
-	const auto totalNumberSquares = m_NumberSquaresVector->size();
+
+	auto totalNumberSquares = m_NumberSquaresVector->size();
 	for (auto i = totalNumberSquares; i > 0; i--)
 	{
 		// Get all the needed info from the current number square
 		const auto& currentNumSquare = m_NumberSquaresVector->operator[](i - 1);
-		auto numSquareRow = currentNumSquare->GetComponent<NumberSquare>()->GetRowPosIdx();
-		auto numSquareCol = currentNumSquare->GetComponent<NumberSquare>()->GetColPosIdx();
+		auto* currentNumSquareComp = currentNumSquare->GetComponent<NumberSquare>();
+		auto numSquareRow = currentNumSquareComp->GetRowPosIdx();
+		auto numSquareCol = currentNumSquareComp->GetColPosIdx();
+		const auto numSquareValue = currentNumSquareComp->GetValue();
 
 		// Calculate to which column will it move, by taking into account the other number squares in the way
+		// Also, if it collides with any square, save it
 		int nrSquaresInTheWay = 0;
+		std::shared_ptr<dae::GameObject> collisionSquare;
 		for (auto e = totalNumberSquares; e > 0; e--)
 		{
-			const auto& otherSquare = m_NumberSquaresVector->operator[](e - 1)->GetComponent<NumberSquare>();
-			if (otherSquare->GetRowPosIdx() == numSquareRow && otherSquare->GetColPosIdx() > numSquareCol)
+			auto otherSquare = m_NumberSquaresVector->operator[](e - 1);
+			const auto* otherSquareComp = otherSquare->GetComponent<NumberSquare>();
+			if (otherSquareComp->GetRowPosIdx() == numSquareRow && otherSquareComp->GetColPosIdx() > numSquareCol)
+			{
+				if (collisionSquare != nullptr)
+				{
+					const auto otherSquareColDist = otherSquareComp->GetColPosIdx() - numSquareCol;
+					const auto currentColSquareDist = collisionSquare->GetComponent<NumberSquare>()->GetColPosIdx() - numSquareCol;
+					if (otherSquareColDist < currentColSquareDist)
+						collisionSquare = otherSquare;
+				}
+				else collisionSquare = otherSquare;
+
 				nrSquaresInTheWay++;
+			}
 		}
 
-		auto occupiedSpace = std::make_pair(numSquareRow, 3 - nrSquaresInTheWay);
+		bool squaresCollapsed = false;
 		auto freedSpace = std::make_pair(numSquareRow, numSquareCol);
 
-		// If the square moves
-		if (occupiedSpace != freedSpace)
+		// If there was a collision
+		if (collisionSquare != nullptr)
 		{
-			// Save the newly occupied space and add the freed square to the vector
-			m_FreeSquares.push_back(freedSpace);
-			occupiedSquares.push_back(occupiedSpace);
+			auto* collisionSquareComp = collisionSquare->GetComponent<NumberSquare>();
 
-			// Move the square, changing both its graphics and its position indexes
-			currentNumSquare->GetComponent<NumberSquare>()->SetColPosIdxBuffer(3 - nrSquaresInTheWay);
+			// If the colliding pieces have the same value
+			if (collisionSquareComp->GetValue() == numSquareValue)
+			{
+				// And if none of them has collapsed already in this swipe
+				if (collisionSquareComp->GetHasJustCollapsed() == false)
+				{
+					// Destroy the one currently moving and double the value of the other one
+					currentNumSquareComp->GetDestroyed();
+					totalNumberSquares--;
+					m_NumberSquaresVector->erase(std::remove(m_NumberSquaresVector->begin(), m_NumberSquaresVector->end(), currentNumSquare), m_NumberSquaresVector->end());
+					const auto newValue = collisionSquareComp->GetValue() * 2;
+					collisionSquareComp->SetValueBuffer(newValue);
+					m_FreeSquares.push_back(freedSpace);
+					squaresCollapsed = true;
+					m_Score += newValue;
+					m_Subject->Notify(dae::Event::ScoreIncreased);
+				}
+			}
+		}
 
-			auto* graphicsComponent = currentNumSquare->GetComponent<dae::GraphicsComponent>();
-			graphicsComponent->SetPosition(graphicsComponent->GetPosition().first + m_SquareSpacing * float(3 - nrSquaresInTheWay - numSquareCol),
-				graphicsComponent->GetPosition().second);
+		if (squaresCollapsed == false)
+		{
+			auto occupiedSpace = std::make_pair(numSquareRow, 3 - nrSquaresInTheWay);
 
-			const auto* textComponent = currentNumSquare->GetComponent<dae::TextComponent>();
-			textComponent->SetPosition(textComponent->GetPosition().first + m_SquareSpacing * float(3 - nrSquaresInTheWay - numSquareCol),
-				textComponent->GetPosition().second);
+			// If the square moves
+			if (occupiedSpace != freedSpace)
+			{
+				// Update the bool
+				piecesMoved = true;
+
+				// Save the newly occupied space and add the freed square to the vector
+				m_FreeSquares.push_back(freedSpace);
+				occupiedSquares.push_back(occupiedSpace);
+
+				// Move the square, changing its position index
+				currentNumSquareComp->SetColPosIdxBuffer(3 - nrSquaresInTheWay);
+			}
 		}
 	}
 
@@ -186,58 +294,114 @@ void GameLogic::SwipeRight()
 	}
 
 	// Update the m_FreeSquares vector with all the newly occupied spaces
-	for(auto newOccupiedSquare : occupiedSquares)
+	for (auto newOccupiedSquare : occupiedSquares)
 		m_FreeSquares.erase(std::remove(m_FreeSquares.begin(), m_FreeSquares.end(), newOccupiedSquare), m_FreeSquares.end());
 
-	// Create a new random square or restart the game if the board is full
-	if (m_FreeSquares.empty() == false)
+	// If anything moved, create a new random square
+	if (piecesMoved)
 		CreateRandomNumberSquare();
-	else
-		RestartGame();
+
+	// If, with the new piece, the board is now full
+	if (m_FreeSquares.empty())
+	{
+		// Test if any future move can clear a space on the board
+		if (TestSwipeLeft() == false)
+		{
+			if (TestSwipeRight() == false)
+			{
+				if (TestSwipeDown() == false)
+				{
+					if (TestSwipeUp() == false) // And if not, restart the game
+						RestartGame();
+				}
+			}
+		}
+	}
 }
 
 void GameLogic::SwipeUp()
 {
-	std::cout << "Up\n";
+	bool piecesMoved = false;
 	std::vector<std::pair<int, int>> occupiedSquares;
 
-	const auto totalNumberSquares = m_NumberSquaresVector->size();
+	auto totalNumberSquares = m_NumberSquaresVector->size();
 	for (auto i = totalNumberSquares; i > 0; i--)
 	{
 		// Get all the needed info from the current number square
 		const auto& currentNumSquare = m_NumberSquaresVector->operator[](i - 1);
-		auto numSquareRow = currentNumSquare->GetComponent<NumberSquare>()->GetRowPosIdx();
-		auto numSquareCol = currentNumSquare->GetComponent<NumberSquare>()->GetColPosIdx();
+		auto* currentNumSquareComp = currentNumSquare->GetComponent<NumberSquare>();
+		auto numSquareRow = currentNumSquareComp->GetRowPosIdx();
+		auto numSquareCol = currentNumSquareComp->GetColPosIdx();
+		const auto numSquareValue = currentNumSquareComp->GetValue();
 
-		// Calculate to which column will it move, by taking into account the other number squares in the way
+		// Calculate to which row will it move, by taking into account the other number squares in the way
+		// Also, if it collides with any square, save it
 		int nrSquaresInTheWay = 0;
+		std::shared_ptr<dae::GameObject> collisionSquare;
 		for (auto e = totalNumberSquares; e > 0; e--)
 		{
-			const auto& otherSquare = m_NumberSquaresVector->operator[](e - 1)->GetComponent<NumberSquare>();
-			if (otherSquare->GetColPosIdx() == numSquareCol && otherSquare->GetRowPosIdx() < numSquareRow)
+			auto otherSquare = m_NumberSquaresVector->operator[](e - 1);
+			const auto* otherSquareComp = otherSquare->GetComponent<NumberSquare>();
+			if (otherSquareComp->GetColPosIdx() == numSquareCol && otherSquareComp->GetRowPosIdx() < numSquareRow)
+			{
+				if (collisionSquare != nullptr)
+				{
+					const auto otherSquareRowDist = numSquareRow - otherSquareComp->GetRowPosIdx();
+					const auto currentRowSquareDist = numSquareRow - collisionSquare->GetComponent<NumberSquare>()->GetRowPosIdx();
+					if (otherSquareRowDist < currentRowSquareDist)
+						collisionSquare = otherSquare;
+				}
+				else collisionSquare = otherSquare;
+
 				nrSquaresInTheWay++;
+			}
 		}
 
-		auto occupiedSpace = std::make_pair(nrSquaresInTheWay, numSquareCol);
+		bool squaresCollapsed = false;
 		auto freedSpace = std::make_pair(numSquareRow, numSquareCol);
 
-		// If the square moves
-		if (occupiedSpace != freedSpace)
+		// If there was a collision
+		if (collisionSquare != nullptr)
 		{
-			// Save the newly occupied space and add the freed square to the vector
-			m_FreeSquares.push_back(freedSpace);
-			occupiedSquares.push_back(occupiedSpace);
+			auto* collisionSquareComp = collisionSquare->GetComponent<NumberSquare>();
 
-			// Move the square, changing both its graphics and its position indexes
-			currentNumSquare->GetComponent<NumberSquare>()->SetRowPosIdxBuffer(nrSquaresInTheWay);
+			// If the colliding pieces have the same value
+			if (collisionSquareComp->GetValue() == numSquareValue)
+			{
+				// And if none of them has collapsed already in this swipe
+				if (collisionSquareComp->GetHasJustCollapsed() == false)
+				{
+					// Destroy the one currently moving and double the value of the other one
+					currentNumSquareComp->GetDestroyed();
+					totalNumberSquares--;
+					m_NumberSquaresVector->erase(std::remove(m_NumberSquaresVector->begin(), m_NumberSquaresVector->end(), currentNumSquare), m_NumberSquaresVector->end());
+					const auto newValue = collisionSquareComp->GetValue() * 2;
+					collisionSquareComp->SetValueBuffer(newValue);
+					m_FreeSquares.push_back(freedSpace);
+					squaresCollapsed = true;
+					m_Score += newValue;
+					m_Subject->Notify(dae::Event::ScoreIncreased);
+				}
+			}
+		}
 
-			auto* graphicsComponent = currentNumSquare->GetComponent<dae::GraphicsComponent>();
-			graphicsComponent->SetPosition(graphicsComponent->GetPosition().first,
-				graphicsComponent->GetPosition().second - m_SquareSpacing * float(numSquareRow - nrSquaresInTheWay));
+		if (squaresCollapsed == false)
+		{
+			auto occupiedSpace = std::make_pair(nrSquaresInTheWay, numSquareCol);
 
-			const auto* textComponent = currentNumSquare->GetComponent<dae::TextComponent>();
-			textComponent->SetPosition(textComponent->GetPosition().first,
-				textComponent->GetPosition().second - m_SquareSpacing * float(numSquareRow - nrSquaresInTheWay));
+			// If the square moves
+			if (occupiedSpace != freedSpace)
+			{
+				// Update the bool
+				piecesMoved = true;
+				
+				// Save the newly occupied space and add the freed square to the vector
+				m_FreeSquares.push_back(freedSpace);
+				occupiedSquares.push_back(occupiedSpace);
+
+				// Move the square, changing its position index
+				currentNumSquareComp->SetRowPosIdxBuffer(nrSquaresInTheWay);
+			}
 		}
 	}
 
@@ -252,55 +416,111 @@ void GameLogic::SwipeUp()
 	for (auto newOccupiedSquare : occupiedSquares)
 		m_FreeSquares.erase(std::remove(m_FreeSquares.begin(), m_FreeSquares.end(), newOccupiedSquare), m_FreeSquares.end());
 
-	// Create a new random square or restart the game if the board is full
-	if (m_FreeSquares.empty() == false)
+	// If anything moved, create a new random square
+	if (piecesMoved)
 		CreateRandomNumberSquare();
-	else
-		RestartGame();
+
+	// If, with the new piece, the board is now full
+	if (m_FreeSquares.empty())
+	{
+		// Test if any future move can clear a space on the board
+		if (TestSwipeLeft() == false)
+		{
+			if (TestSwipeRight() == false)
+			{
+				if (TestSwipeDown() == false)
+				{
+					if (TestSwipeUp() == false) // And if not, restart the game
+						RestartGame();
+				}
+			}
+		}
+	}
 }
 
 void GameLogic::SwipeDown()
 {
-	std::cout << "Down\n";
+	bool piecesMoved = false;
 	std::vector<std::pair<int, int>> occupiedSquares;
 
-	const auto totalNumberSquares = m_NumberSquaresVector->size();
+	auto totalNumberSquares = m_NumberSquaresVector->size();
 	for (auto i = totalNumberSquares; i > 0; i--)
 	{
 		// Get all the needed info from the current number square
 		const auto& currentNumSquare = m_NumberSquaresVector->operator[](i - 1);
-		auto numSquareRow = currentNumSquare->GetComponent<NumberSquare>()->GetRowPosIdx();
-		auto numSquareCol = currentNumSquare->GetComponent<NumberSquare>()->GetColPosIdx();
+		auto* currentNumSquareComp = currentNumSquare->GetComponent<NumberSquare>();
+		auto numSquareRow = currentNumSquareComp->GetRowPosIdx();
+		auto numSquareCol = currentNumSquareComp->GetColPosIdx();
+		const auto numSquareValue = currentNumSquareComp->GetValue();
 
-		// Calculate to which column will it move, by taking into account the other number squares in the way
+		// Calculate to which row will it move, by taking into account the other number squares in the way
+		// Also, if it collides with any square, save it
 		int nrSquaresInTheWay = 0;
+		std::shared_ptr<dae::GameObject> collisionSquare;
 		for (auto e = totalNumberSquares; e > 0; e--)
 		{
-			const auto& otherSquare = m_NumberSquaresVector->operator[](e - 1)->GetComponent<NumberSquare>();
-			if (otherSquare->GetColPosIdx() == numSquareCol && otherSquare->GetRowPosIdx() > numSquareRow)
+			auto otherSquare = m_NumberSquaresVector->operator[](e - 1);
+			const auto* otherSquareComp = otherSquare->GetComponent<NumberSquare>();
+			if (otherSquareComp->GetColPosIdx() == numSquareCol && otherSquareComp->GetRowPosIdx() > numSquareRow)
+			{
+				if (collisionSquare != nullptr)
+				{
+					const auto otherSquareRowDist = otherSquareComp->GetRowPosIdx() - numSquareRow;
+					const auto currentRowSquareDist = collisionSquare->GetComponent<NumberSquare>()->GetRowPosIdx() - numSquareRow;
+					if (otherSquareRowDist < currentRowSquareDist)
+						collisionSquare = otherSquare;
+				}
+				else collisionSquare = otherSquare;
+
 				nrSquaresInTheWay++;
+			}
 		}
 
-		auto occupiedSpace = std::make_pair(3 - nrSquaresInTheWay, numSquareCol);
+		bool squaresCollapsed = false;
 		auto freedSpace = std::make_pair(numSquareRow, numSquareCol);
 
-		// If the square moves
-		if (occupiedSpace != freedSpace)
+		// If there was a collision
+		if (collisionSquare != nullptr)
 		{
-			// Save the newly occupied space and add the freed square to the vector
-			m_FreeSquares.push_back(freedSpace);
-			occupiedSquares.push_back(occupiedSpace);
+			auto* collisionSquareComp = collisionSquare->GetComponent<NumberSquare>();
 
-			// Move the square, changing both its graphics and its position indexes
-			currentNumSquare->GetComponent<NumberSquare>()->SetRowPosIdxBuffer(3 - nrSquaresInTheWay);
+			// And if none of them has collapsed already in this swipe
+			if (collisionSquareComp->GetHasJustCollapsed() == false)
+			{
+				// If the colliding pieces have the same value
+				if (collisionSquareComp->GetValue() == numSquareValue)
+				{
+					// Destroy the one currently moving and double the value of the other one
+					currentNumSquareComp->GetDestroyed();
+					totalNumberSquares--;
+					m_NumberSquaresVector->erase(std::remove(m_NumberSquaresVector->begin(), m_NumberSquaresVector->end(), currentNumSquare), m_NumberSquaresVector->end());
+					const auto newValue = collisionSquareComp->GetValue() * 2;
+					collisionSquareComp->SetValueBuffer(newValue);
+					m_FreeSquares.push_back(freedSpace);
+					squaresCollapsed = true;
+					m_Score += newValue;
+					m_Subject->Notify(dae::Event::ScoreIncreased);
+				}
+			}
+		}
 
-			auto* graphicsComponent = currentNumSquare->GetComponent<dae::GraphicsComponent>();
-			graphicsComponent->SetPosition(graphicsComponent->GetPosition().first,
-				graphicsComponent->GetPosition().second + m_SquareSpacing * float(3 - nrSquaresInTheWay - numSquareRow));
+		if (squaresCollapsed == false)
+		{
+			auto occupiedSpace = std::make_pair(3 - nrSquaresInTheWay, numSquareCol);
 
-			const auto* textComponent = currentNumSquare->GetComponent<dae::TextComponent>();
-			textComponent->SetPosition(textComponent->GetPosition().first,
-				textComponent->GetPosition().second + m_SquareSpacing * float(3 - nrSquaresInTheWay - numSquareRow));
+			// If the square moves
+			if (occupiedSpace != freedSpace)
+			{
+				// Update the bool
+				piecesMoved = true;
+				
+				// Save the newly occupied space and add the freed square to the vector
+				m_FreeSquares.push_back(freedSpace);
+				occupiedSquares.push_back(occupiedSpace);
+
+				// Move the square, changing its position index
+				currentNumSquareComp->SetRowPosIdxBuffer(3 - nrSquaresInTheWay);
+			}
 		}
 	}
 
@@ -315,12 +535,207 @@ void GameLogic::SwipeDown()
 	for (auto newOccupiedSquare : occupiedSquares)
 		m_FreeSquares.erase(std::remove(m_FreeSquares.begin(), m_FreeSquares.end(), newOccupiedSquare), m_FreeSquares.end());
 
-	// Create a new random square or restart the game if the board is full
-	if (m_FreeSquares.empty() == false)
+	// If anything moved, create a new random square
+	if (piecesMoved)
 		CreateRandomNumberSquare();
-	else
-		RestartGame();
+
+	// If, with the new piece, the board is now full
+	if (m_FreeSquares.empty())
+	{
+		// Test if any future move can clear a space on the board
+		if (TestSwipeLeft() == false)
+		{
+			if (TestSwipeRight() == false)
+			{
+				if (TestSwipeDown() == false)
+				{
+					if (TestSwipeUp() == false) // And if not, restart the game
+						RestartGame();
+				}
+			}
+		}
+	}
 }
+
+
+
+bool GameLogic::TestSwipeLeft() const
+{
+	const auto totalNumberSquares = m_NumberSquaresVector->size();
+	for (auto i = totalNumberSquares; i > 0; i--)
+	{
+		// Get all the needed info from the current number square
+		const auto& currentNumSquare = m_NumberSquaresVector->operator[](i - 1);
+		auto* currentNumSquareComp = currentNumSquare->GetComponent<NumberSquare>();
+		const auto numSquareRow = currentNumSquareComp->GetRowPosIdx();
+		const auto numSquareCol = currentNumSquareComp->GetColPosIdx();
+		const auto numSquareValue = currentNumSquareComp->GetValue();
+
+		// Save the square with which the current one will collide
+		std::shared_ptr<dae::GameObject> collisionSquare;
+		for (auto e = totalNumberSquares; e > 0; e--)
+		{
+			auto otherSquare = m_NumberSquaresVector->operator[](e - 1);
+			const auto* otherSquareComp = otherSquare->GetComponent<NumberSquare>();
+			if (otherSquareComp->GetRowPosIdx() == numSquareRow && otherSquareComp->GetColPosIdx() < numSquareCol)
+			{
+				if (collisionSquare != nullptr)
+				{
+					const auto otherSquareColDist = numSquareCol - otherSquareComp->GetColPosIdx();
+					const auto currentColSquareDist = numSquareCol - collisionSquare->GetComponent<NumberSquare>()->GetColPosIdx();
+					if (otherSquareColDist < currentColSquareDist)
+						collisionSquare = otherSquare;
+				}
+				else collisionSquare = otherSquare;
+			}
+		}
+
+		// If there's a collision
+		if (collisionSquare != nullptr)
+		{
+			// If the colliding pieces have the same value
+			auto* collisionSquareComp = collisionSquare->GetComponent<NumberSquare>();
+			if (collisionSquareComp->GetValue() == numSquareValue)
+				return true;
+		}
+	}
+
+	return false;
+}
+
+bool GameLogic::TestSwipeRight() const
+{
+	const auto totalNumberSquares = m_NumberSquaresVector->size();
+	for (auto i = totalNumberSquares; i > 0; i--)
+	{
+		// Get all the needed info from the current number square
+		const auto& currentNumSquare = m_NumberSquaresVector->operator[](i - 1);
+		auto* currentNumSquareComp = currentNumSquare->GetComponent<NumberSquare>();
+		const auto numSquareRow = currentNumSquareComp->GetRowPosIdx();
+		const auto numSquareCol = currentNumSquareComp->GetColPosIdx();
+		const auto numSquareValue = currentNumSquareComp->GetValue();
+
+		// Save the square with which the current one will collide
+		std::shared_ptr<dae::GameObject> collisionSquare;
+		for (auto e = totalNumberSquares; e > 0; e--)
+		{
+			auto otherSquare = m_NumberSquaresVector->operator[](e - 1);
+			const auto* otherSquareComp = otherSquare->GetComponent<NumberSquare>();
+			if (otherSquareComp->GetRowPosIdx() == numSquareRow && otherSquareComp->GetColPosIdx() > numSquareCol)
+			{
+				if (collisionSquare != nullptr)
+				{
+					const auto otherSquareColDist = otherSquareComp->GetColPosIdx() - numSquareCol;
+					const auto currentColSquareDist = collisionSquare->GetComponent<NumberSquare>()->GetColPosIdx() - numSquareCol;
+					if (otherSquareColDist < currentColSquareDist)
+						collisionSquare = otherSquare;
+				}
+				else collisionSquare = otherSquare;
+			}
+		}
+
+		// If there's a collision
+		if (collisionSquare != nullptr)
+		{
+			// If the colliding pieces have the same value
+			auto* collisionSquareComp = collisionSquare->GetComponent<NumberSquare>();
+			if (collisionSquareComp->GetValue() == numSquareValue)
+				return true;
+		}
+	}
+
+	return false;
+}
+
+bool GameLogic::TestSwipeUp() const
+{
+	const auto totalNumberSquares = m_NumberSquaresVector->size();
+	for (auto i = totalNumberSquares; i > 0; i--)
+	{
+		// Get all the needed info from the current number square
+		const auto& currentNumSquare = m_NumberSquaresVector->operator[](i - 1);
+		auto* currentNumSquareComp = currentNumSquare->GetComponent<NumberSquare>();
+		const auto numSquareRow = currentNumSquareComp->GetRowPosIdx();
+		const auto numSquareCol = currentNumSquareComp->GetColPosIdx();
+		const auto numSquareValue = currentNumSquareComp->GetValue();
+
+		// Save the square with which the current one will collide
+		std::shared_ptr<dae::GameObject> collisionSquare;
+		for (auto e = totalNumberSquares; e > 0; e--)
+		{
+			auto otherSquare = m_NumberSquaresVector->operator[](e - 1);
+			const auto* otherSquareComp = otherSquare->GetComponent<NumberSquare>();
+			if (otherSquareComp->GetColPosIdx() == numSquareCol && otherSquareComp->GetRowPosIdx() < numSquareRow)
+			{
+				if (collisionSquare != nullptr)
+				{
+					const auto otherSquareRowDist = numSquareRow - otherSquareComp->GetRowPosIdx();
+					const auto currentRowSquareDist = numSquareRow - collisionSquare->GetComponent<NumberSquare>()->GetRowPosIdx();
+					if (otherSquareRowDist < currentRowSquareDist)
+						collisionSquare = otherSquare;
+				}
+				else collisionSquare = otherSquare;
+			}
+		}
+
+		// If there's a collision
+		if (collisionSquare != nullptr)
+		{
+			// If the colliding pieces have the same value
+			auto* collisionSquareComp = collisionSquare->GetComponent<NumberSquare>();
+			if (collisionSquareComp->GetValue() == numSquareValue)
+				return true;
+		}
+	}
+
+	return false;
+}
+
+bool GameLogic::TestSwipeDown() const
+{
+	const auto totalNumberSquares = m_NumberSquaresVector->size();
+	for (auto i = totalNumberSquares; i > 0; i--)
+	{
+		// Get all the needed info from the current number square
+		const auto& currentNumSquare = m_NumberSquaresVector->operator[](i - 1);
+		auto* currentNumSquareComp = currentNumSquare->GetComponent<NumberSquare>();
+		const auto numSquareRow = currentNumSquareComp->GetRowPosIdx();
+		const auto numSquareCol = currentNumSquareComp->GetColPosIdx();
+		const auto numSquareValue = currentNumSquareComp->GetValue();
+
+		// Save the square with which the current one will collide
+		std::shared_ptr<dae::GameObject> collisionSquare;
+		for (auto e = totalNumberSquares; e > 0; e--)
+		{
+			auto otherSquare = m_NumberSquaresVector->operator[](e - 1);
+			const auto* otherSquareComp = otherSquare->GetComponent<NumberSquare>();
+			if (otherSquareComp->GetColPosIdx() == numSquareCol && otherSquareComp->GetRowPosIdx() > numSquareRow)
+			{
+				if (collisionSquare != nullptr)
+				{
+					const auto otherSquareRowDist = otherSquareComp->GetRowPosIdx() - numSquareRow;
+					const auto currentRowSquareDist = collisionSquare->GetComponent<NumberSquare>()->GetRowPosIdx() - numSquareRow;
+					if (otherSquareRowDist < currentRowSquareDist)
+						collisionSquare = otherSquare;
+				}
+				else collisionSquare = otherSquare;
+			}
+		}
+
+		// If there's a collision
+		if (collisionSquare != nullptr)
+		{
+			// If the colliding pieces have the same value
+			auto* collisionSquareComp = collisionSquare->GetComponent<NumberSquare>();
+			if (collisionSquareComp->GetValue() == numSquareValue)
+				return true;
+		}
+	}
+
+	return false;
+}
+
+
 
 
 

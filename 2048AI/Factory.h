@@ -13,7 +13,7 @@ std::shared_ptr<dae::GameObject> MakeGameLogic();
 
 std::shared_ptr<dae::GameObject> MakeBackground();
 
-std::shared_ptr<dae::GameObject> MakeScoreDisplay(std::shared_ptr<dae::GameObject> gameLogic);
+std::shared_ptr<dae::GameObject> MakeScoreDisplay(const std::shared_ptr<dae::GameObject>& gameLogic);
 
 std::shared_ptr<dae::GameObject> MakeNumberSquare(int number, int rowIdx, int colIdx);
 

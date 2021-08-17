@@ -6,7 +6,7 @@
 class GameLogic final : public dae::BaseComponent
 {
 public:
-	explicit GameLogic(const std::shared_ptr<dae::GameObject>& gameObject, float boardStartX, float boardStartY, float squareSpacing);
+	explicit GameLogic(const std::shared_ptr<dae::GameObject>& gameObject, float squareSpacing);
 
 	GameLogic(const GameLogic& other) = delete;
 	GameLogic(GameLogic&& other) noexcept = delete;
@@ -18,19 +18,26 @@ public:
 	void Initialize() override;
 	void Update(const float deltaTime) override;
 	
-	void CreateRandomNumberSquare();
+	void CreateRandomNumberSquare(int value = 0, int rowIdx = 0, int colIdx = 0);
 	void RestartGame();
+
+	int GetScore() const { return m_Score; }
 
 	void SwipeLeft();
 	void SwipeRight();
 	void SwipeUp();
 	void SwipeDown();
 
+	bool TestSwipeLeft() const;
+	bool TestSwipeRight() const;
+	bool TestSwipeUp() const;
+	bool TestSwipeDown() const;
+
 private:
 	std::shared_ptr<dae::GameObject> m_GameObject{};
 	std::vector<std::shared_ptr<dae::GameObject>>* m_NumberSquaresVector{};
 	std::vector<std::pair<int, int>> m_FreeSquares{};
 	int m_Score;
-	const float m_BoardStartX, m_BoardStartY, m_SquareSpacing;
+	const float m_SquareSpacing;
 };
 

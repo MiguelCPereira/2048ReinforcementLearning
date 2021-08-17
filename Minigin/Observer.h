@@ -17,8 +17,7 @@ namespace dae
 
 
 		// Write any extra events here
-		// ExampleEvent1,
-		// ExampleEvent2
+		ScoreIncreased
 	};
 
 	class Observer
