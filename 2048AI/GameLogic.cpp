@@ -1,4 +1,5 @@
 #include "GameLogic.h"
+#include <algorithm>
 #include <iostream>
 #include "Factory.h"
 #include "GameObject.h"
@@ -85,7 +86,13 @@ void GameLogic::SwipeLeft()
 	bool piecesMoved = false;
 	std::vector<std::pair<int, int>> occupiedSquares;
 
-	// First, collapse all colliding squares with equal value
+	// First, organize the vector so it calculates the squares collisions left to right (considering it's gonna be a regressive for-loop)
+	std::sort(m_NumberSquaresVector->begin(), m_NumberSquaresVector->end(), [](std::shared_ptr<dae::GameObject>& a, std::shared_ptr<dae::GameObject>& b)
+		{
+			return  a->GetComponent<NumberSquare>()->GetColPosIdx() > b->GetComponent<NumberSquare>()->GetColPosIdx();
+		});
+	
+	// And then collapse all colliding squares with equal value
 	auto totalNumberSquares = m_NumberSquaresVector->size();
 	for (auto i = totalNumberSquares; i > 0; i--)
 	{
@@ -128,15 +135,19 @@ void GameLogic::SwipeLeft()
 				// And if none of them has collapsed already in this swipe
 				if (collisionSquareComp->GetHasJustCollapsed() == false)
 				{
+					
 					// Destroy the one currently being checked and double the value of the other one
 					currentNumSquareComp->GetDestroyed();
 					totalNumberSquares--;
 					m_NumberSquaresVector->erase(std::remove(m_NumberSquaresVector->begin(), m_NumberSquaresVector->end(), currentNumSquare), m_NumberSquaresVector->end());
 					const auto newValue = collisionSquareComp->GetValue() * 2;
 					collisionSquareComp->SetValueBuffer(newValue);
+					collisionSquareComp->UpdateValues();
 					m_FreeSquares.push_back(freedSpace);
 					m_Score += newValue;
 					m_Subject->Notify(dae::Event::ScoreIncreased);
+					// Also, update the bool
+					piecesMoved = true;
 				}
 			}
 		}
@@ -220,7 +231,14 @@ void GameLogic::SwipeRight()
 	bool piecesMoved = false;
 	std::vector<std::pair<int, int>> occupiedSquares;
 
-	// First, collapse all colliding squares with equal value
+	// First, organize the vector so it calculates the squares collisions right to left (considering it's gonna be a regressive for-loop)
+	std::sort(m_NumberSquaresVector->begin(), m_NumberSquaresVector->end(), [](std::shared_ptr<dae::GameObject>& a, std::shared_ptr<dae::GameObject>& b)
+		{
+			return  a->GetComponent<NumberSquare>()->GetColPosIdx() < b->GetComponent<NumberSquare>()->GetColPosIdx();
+		});
+
+	
+	// And then collapse all colliding squares with equal value
 	auto totalNumberSquares = m_NumberSquaresVector->size();
 	for (auto i = totalNumberSquares; i > 0; i--)
 	{
@@ -269,9 +287,12 @@ void GameLogic::SwipeRight()
 					m_NumberSquaresVector->erase(std::remove(m_NumberSquaresVector->begin(), m_NumberSquaresVector->end(), currentNumSquare), m_NumberSquaresVector->end());
 					const auto newValue = collisionSquareComp->GetValue() * 2;
 					collisionSquareComp->SetValueBuffer(newValue);
+					collisionSquareComp->UpdateValues();
 					m_FreeSquares.push_back(freedSpace);
 					m_Score += newValue;
 					m_Subject->Notify(dae::Event::ScoreIncreased);
+					// Also, update the bool
+					piecesMoved = true;
 				}
 			}
 		}
@@ -355,7 +376,13 @@ void GameLogic::SwipeUp()
 	bool piecesMoved = false;
 	std::vector<std::pair<int, int>> occupiedSquares;
 
-	// First, collapse all colliding squares with equal value
+	// First, organize the vector so it calculates the squares collisions top to bottom (considering it's gonna be a regressive for-loop)
+	std::sort(m_NumberSquaresVector->begin(), m_NumberSquaresVector->end(), [](std::shared_ptr<dae::GameObject>& a, std::shared_ptr<dae::GameObject>& b)
+		{
+			return  a->GetComponent<NumberSquare>()->GetRowPosIdx() > b->GetComponent<NumberSquare>()->GetRowPosIdx();
+		});
+
+	// And then collapse all colliding squares with equal value
 	auto totalNumberSquares = m_NumberSquaresVector->size();
 	for (auto i = totalNumberSquares; i > 0; i--)
 	{
@@ -404,9 +431,12 @@ void GameLogic::SwipeUp()
 					m_NumberSquaresVector->erase(std::remove(m_NumberSquaresVector->begin(), m_NumberSquaresVector->end(), currentNumSquare), m_NumberSquaresVector->end());
 					const auto newValue = collisionSquareComp->GetValue() * 2;
 					collisionSquareComp->SetValueBuffer(newValue);
+					collisionSquareComp->UpdateValues();
 					m_FreeSquares.push_back(freedSpace);
 					m_Score += newValue;
 					m_Subject->Notify(dae::Event::ScoreIncreased);
+					// Also, update the bool
+					piecesMoved = true;
 				}
 			}
 		}
@@ -490,7 +520,13 @@ void GameLogic::SwipeDown()
 	bool piecesMoved = false;
 	std::vector<std::pair<int, int>> occupiedSquares;
 
-	// First, collapse all colliding squares with equal value
+	// First, organize the vector so it calculates the squares collisions bottom to top (considering it's gonna be a regressive for-loop)
+	std::sort(m_NumberSquaresVector->begin(), m_NumberSquaresVector->end(), [](std::shared_ptr<dae::GameObject>& a, std::shared_ptr<dae::GameObject>& b)
+		{
+			return  a->GetComponent<NumberSquare>()->GetRowPosIdx() < b->GetComponent<NumberSquare>()->GetRowPosIdx();
+		});
+
+	// And then collapse all colliding squares with equal value
 	auto totalNumberSquares = m_NumberSquaresVector->size();
 	for (auto i = totalNumberSquares; i > 0; i--)
 	{
@@ -539,9 +575,12 @@ void GameLogic::SwipeDown()
 					m_NumberSquaresVector->erase(std::remove(m_NumberSquaresVector->begin(), m_NumberSquaresVector->end(), currentNumSquare), m_NumberSquaresVector->end());
 					const auto newValue = collisionSquareComp->GetValue() * 2;
 					collisionSquareComp->SetValueBuffer(newValue);
+					collisionSquareComp->UpdateValues();
 					m_FreeSquares.push_back(freedSpace);
 					m_Score += newValue;
 					m_Subject->Notify(dae::Event::ScoreIncreased);
+					// Also, update the bool
+					piecesMoved = true;
 				}
 			}
 		}

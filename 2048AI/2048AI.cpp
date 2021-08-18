@@ -6,10 +6,6 @@
 #include "Factory.h"
 #include "GameObject.h"
 #include "Scene.h"
-//#include "GameObject.h"
-//#include "Command.h"
-//#include "InputManager.h"
-//#include "GameCommands.h"
 
 void SetUpGame();
 
@@ -19,7 +15,6 @@ int main(int, char* [])
 	
 	dae::Minigin engine;
 	engine.Initialize();
-	//engine.LoadDemo();
 	SetUpGame();
 	engine.Run();
 
