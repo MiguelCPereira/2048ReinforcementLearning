@@ -22,11 +22,12 @@ public:
 	void RestartGame();
 
 	int GetScore() const { return m_Score; }
+	bool GetGameOver() const { return m_GameOver;  }
 
-	void SwipeLeft();
-	void SwipeRight();
-	void SwipeUp();
-	void SwipeDown();
+	int SwipeLeft();
+	int SwipeRight();
+	int SwipeUp();
+	int SwipeDown();
 
 	bool TestSwipeLeft() const;
 	bool TestSwipeRight() const;

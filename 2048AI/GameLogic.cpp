@@ -109,8 +109,10 @@ void GameLogic::RestartGame()
 
 
 
-void GameLogic::SwipeLeft()
+int GameLogic::SwipeLeft()
 {
+	int reward = -1; // Start the reward as -1, as to punish the AI for the new square that spawns every turn
+	
 	if (m_GameOver == false)
 	{
 		bool piecesMoved = false;
@@ -173,10 +175,14 @@ void GameLogic::SwipeLeft()
 						const auto newValue = collisionSquareComp->GetValue() * 2;
 						collisionSquareComp->SetValueBuffer(newValue);
 						collisionSquareComp->UpdateValues();
+
+						// Also update the FreeSquares vector, the score and the reward
 						m_FreeSquares.push_back(freedSpace);
 						m_Score += newValue;
 						m_Subject->Notify(dae::Event::ScoreIncreased);
-						// Also, update the bool
+						reward++;
+						
+						// And change the bool
 						piecesMoved = true;
 					}
 				}
@@ -249,16 +255,23 @@ void GameLogic::SwipeLeft()
 					if (TestSwipeDown() == false)
 					{
 						if (TestSwipeUp() == false) // And if not, restart the game
+						{
+							reward -= 10;
 							m_GameOver = true;
+						}
 					}
 				}
 			}
 		}
 	}
+
+	return reward;
 }
 
-void GameLogic::SwipeRight()
+int GameLogic::SwipeRight()
 {
+	int reward = -1; // Start the reward as -1, as to punish the AI for the new square that spawns every turn
+	
 	if (m_GameOver == false)
 	{
 		bool piecesMoved = false;
@@ -321,10 +334,14 @@ void GameLogic::SwipeRight()
 						const auto newValue = collisionSquareComp->GetValue() * 2;
 						collisionSquareComp->SetValueBuffer(newValue);
 						collisionSquareComp->UpdateValues();
+						
+						// Also update the FreeSquares vector, the score and the reward
 						m_FreeSquares.push_back(freedSpace);
 						m_Score += newValue;
 						m_Subject->Notify(dae::Event::ScoreIncreased);
-						// Also, update the bool
+						reward++;
+
+						// And change the bool
 						piecesMoved = true;
 					}
 				}
@@ -397,16 +414,23 @@ void GameLogic::SwipeRight()
 					if (TestSwipeDown() == false)
 					{
 						if (TestSwipeUp() == false) // And if not, restart the game
+						{
+							reward -= 10;
 							m_GameOver = true;
+						}
 					}
 				}
 			}
 		}
 	}
+
+	return reward;
 }
 
-void GameLogic::SwipeUp()
+int GameLogic::SwipeUp()
 {
+	int reward = -1; // Start the reward as -1, as to punish the AI for the new square that spawns every turn
+	
 	if (m_GameOver == false)
 	{
 		bool piecesMoved = false;
@@ -468,10 +492,14 @@ void GameLogic::SwipeUp()
 						const auto newValue = collisionSquareComp->GetValue() * 2;
 						collisionSquareComp->SetValueBuffer(newValue);
 						collisionSquareComp->UpdateValues();
+						
+						// Also update the FreeSquares vector, the score and the reward
 						m_FreeSquares.push_back(freedSpace);
 						m_Score += newValue;
 						m_Subject->Notify(dae::Event::ScoreIncreased);
-						// Also, update the bool
+						reward++;
+
+						// And change the bool
 						piecesMoved = true;
 					}
 				}
@@ -544,16 +572,23 @@ void GameLogic::SwipeUp()
 					if (TestSwipeDown() == false)
 					{
 						if (TestSwipeUp() == false) // And if not, restart the game
+						{
+							reward -= 10;
 							m_GameOver = true;
+						}
 					}
 				}
 			}
 		}
 	}
+
+	return reward;
 }
 
-void GameLogic::SwipeDown()
+int GameLogic::SwipeDown()
 {
+	int reward = -1; // Start the reward as -1, as to punish the AI for the new square that spawns every turn
+	
 	if (m_GameOver == false)
 	{
 		bool piecesMoved = false;
@@ -615,10 +650,14 @@ void GameLogic::SwipeDown()
 						const auto newValue = collisionSquareComp->GetValue() * 2;
 						collisionSquareComp->SetValueBuffer(newValue);
 						collisionSquareComp->UpdateValues();
+						
+						// Also update the FreeSquares vector, the score and the reward
 						m_FreeSquares.push_back(freedSpace);
 						m_Score += newValue;
 						m_Subject->Notify(dae::Event::ScoreIncreased);
-						// Also, update the bool
+						reward++;
+
+						// And change the bool
 						piecesMoved = true;
 					}
 				}
@@ -691,12 +730,17 @@ void GameLogic::SwipeDown()
 					if (TestSwipeDown() == false)
 					{
 						if (TestSwipeUp() == false) // And if not, restart the game
+						{
+							reward -= 10;
 							m_GameOver = true;
+						}
 					}
 				}
 			}
 		}
 	}
+
+	return reward;
 }
 
 
