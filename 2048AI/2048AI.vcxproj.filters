@@ -27,6 +27,9 @@
     <ClCompile Include="ScoreDisplay.cpp">
       <Filter>Components</Filter>
     </ClCompile>
+    <ClCompile Include="PlayerAI.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NumberSquare.h">
@@ -42,6 +45,9 @@
       <Filter>Components</Filter>
     </ClInclude>
     <ClInclude Include="ScoreDisplay.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerAI.h">
       <Filter>Components</Filter>
     </ClInclude>
   </ItemGroup>

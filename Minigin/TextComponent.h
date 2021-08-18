@@ -17,6 +17,8 @@ namespace dae
 		MINIGIN_ENTRY void SetText(const std::string& text);
 		MINIGIN_ENTRY void SetPosition(float x, float y) const;
 		MINIGIN_ENTRY std::pair<float, float> GetPosition() const;
+		void MINIGIN_ENTRY SetHidden(bool isHidden);
+		bool MINIGIN_ENTRY GetHidden() const { return m_Hidden; }
 
 		explicit MINIGIN_ENTRY TextComponent(const std::string& text, const std::shared_ptr<Font>& font);
 		explicit MINIGIN_ENTRY TextComponent(const std::string& text, const std::shared_ptr<Font>& font, int colorR, int colorG, int colorB);
@@ -34,6 +36,7 @@ namespace dae
 		std::shared_ptr<Font> m_Font;
 		std::shared_ptr<Texture2D> m_Texture;
 		int m_ColorR, m_ColorG, m_ColorB;
+		bool m_Hidden;
 	};
 }
 

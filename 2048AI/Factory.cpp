@@ -7,6 +7,7 @@
 #include "GameLogic.h"
 #include "InputManager.h"
 #include "NumberSquare.h"
+#include "PlayerAI.h"
 #include "ScoreDisplay.h"
 #include "TextComponent.h"
 //#include "ScoreDisplay.h"
@@ -68,6 +69,19 @@ std::shared_ptr<dae::GameObject> MakeNumberSquare(int number, int rowIdx, int co
 	return numberSquareGO;
 }
 
+std::shared_ptr<dae::GameObject> MakeGameOverTitle()
+{
+	const auto posX = 238.f;
+	const auto posY = 25.f;
+
+	const auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 30);
+	auto gameOverTitleGO = std::make_shared<dae::GameObject>();
+	gameOverTitleGO->AddComponent(new dae::TextComponent("GAME OVER", font, 238, 228, 218));
+	gameOverTitleGO->GetComponent<dae::TextComponent>()->SetPosition(posX, posY);
+
+	return gameOverTitleGO;
+}
+
 std::shared_ptr<dae::GameObject> MakeFPSCounter()
 {
 	const auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 19);
@@ -105,4 +119,12 @@ void SetUpPlayerInput(std::shared_ptr<dae::GameObject> gameLogic)
 	restartKeyboard->SetActor(gameLogic);
 	restartKeyboard->SetButtonPressType(dae::ButtonPress::PressedDown);
 	dae::InputManager::GetInstance().AddCommand(SDLK_r, std::move(restartKeyboard));
+}
+
+std::shared_ptr<dae::GameObject> MakePlayerAI(std::shared_ptr<dae::GameObject> gameLogic, float timeBetweenMoves)
+{
+	auto playerAIGO = std::make_shared<dae::GameObject>();
+	playerAIGO->AddComponent(new PlayerAI(playerAIGO, gameLogic, timeBetweenMoves));
+
+	return playerAIGO;
 }

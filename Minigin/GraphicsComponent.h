@@ -29,10 +29,11 @@ namespace dae
 
 		MINIGIN_ENTRY std::pair<float, float> GetPosition() const { return std::make_pair(m_PosX, m_PosY); }
 
-		float GetPosX() { return m_PosX; }
-		float GetPosY() { return m_PosY; }
-		float GetWidth() { return m_Width; }
-		float GetHeight() { return m_Height; }
+		float GetPosX() const { return m_PosX; }
+		float GetPosY() const { return m_PosY; }
+		float GetWidth() const { return m_Width; }
+		float GetHeight() const { return m_Height; }
+		bool MINIGIN_ENTRY GetHidden() const { return m_Hidden; }
 
 	private:
 		std::shared_ptr<Texture2D> m_Texture;

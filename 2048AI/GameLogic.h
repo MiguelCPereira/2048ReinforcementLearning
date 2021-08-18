@@ -18,7 +18,7 @@ public:
 	void Initialize() override;
 	void Update(const float deltaTime) override;
 	
-	void CreateRandomNumberSquare(int value = 0, int rowIdx = 0, int colIdx = 0);
+	void CreateNumberSquare(int value = 0, int rowIdx = 0, int colIdx = 0);
 	void RestartGame();
 
 	int GetScore() const { return m_Score; }
@@ -39,5 +39,9 @@ private:
 	std::vector<std::pair<int, int>> m_FreeSquares{};
 	int m_Score;
 	const float m_SquareSpacing;
+	bool m_GameOver;
+	const float m_GameOverTime;
+	float m_GameOverCounter;
+	dae::TextComponent* m_GameOverTitle;
 };
 

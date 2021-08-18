@@ -17,6 +17,7 @@ dae::TextComponent::TextComponent(const std::string& text, const std::shared_ptr
 	, m_ColorR(255)
 	, m_ColorG(255)
 	, m_ColorB(255)
+	, m_Hidden(false)
 { }
 
 dae::TextComponent::TextComponent(const std::string& text, const std::shared_ptr<Font>& font, int colorR, int colorG, int colorB)
@@ -28,6 +29,7 @@ dae::TextComponent::TextComponent(const std::string& text, const std::shared_ptr
 	, m_ColorR(colorR)
 	, m_ColorG(colorG)
 	, m_ColorB(colorB)
+	, m_Hidden(false)
 { }
 
 void dae::TextComponent::Update(const float)
@@ -54,10 +56,13 @@ void dae::TextComponent::Update(const float)
 
 void dae::TextComponent::Render() const
 {
-	if (m_Texture != nullptr)
+	if (m_Hidden == false)
 	{
-		const auto& pos = m_Transform->GetPosition();
-		Renderer::GetInstance().RenderTexture(*m_Texture, pos.x, pos.y);
+		if (m_Texture != nullptr)
+		{
+			const auto& pos = m_Transform->GetPosition();
+			Renderer::GetInstance().RenderTexture(*m_Texture, pos.x, pos.y);
+		}
 	}
 }
 
@@ -76,6 +81,11 @@ void dae::TextComponent::SetPosition(const float x, const float y) const
 std::pair<float, float> dae::TextComponent::GetPosition() const
 {
 	return std::make_pair(m_Transform->GetPosition().x, m_Transform->GetPosition().y);
+}
+
+void dae::TextComponent::SetHidden(bool isHidden)
+{
+	m_Hidden = isHidden;
 }
 
 

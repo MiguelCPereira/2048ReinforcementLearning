@@ -17,6 +17,10 @@ std::shared_ptr<dae::GameObject> MakeScoreDisplay(const std::shared_ptr<dae::Gam
 
 std::shared_ptr<dae::GameObject> MakeNumberSquare(int number, int rowIdx, int colIdx);
 
+std::shared_ptr<dae::GameObject> MakeGameOverTitle();
+
 std::shared_ptr<dae::GameObject> MakeFPSCounter();
 
 void SetUpPlayerInput(std::shared_ptr<dae::GameObject> gameLogic);
+
+std::shared_ptr<dae::GameObject> MakePlayerAI(std::shared_ptr<dae::GameObject> gameLogic, float timeBetweenMoves);
