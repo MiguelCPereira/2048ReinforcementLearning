@@ -1,4 +1,5 @@
 #pragma once
+#include <deque>
 #include <memory>
 #include "BaseComponent.h"
 
@@ -30,18 +31,35 @@ private:
 	// As so, duo to their early unrefined state, the overall structure and logic behind them
 	// is still very reminiscent to this Snake Python tutorial:
 	// https://www.youtube.com/watch?v=PJl4iabBEz0&t=0s
+
+	struct TrainingInfo
+	{
+		std::vector<int> oldState;
+		std::vector<int> newState;
+		int nextMove;
+		int reward;
+		bool gameOver;
+	};
 	
-	//int CalculateAction(Matrix oldState) const;
-	//void TrainShortMemory(Matrix oldState, Matrix newState, Matrix nextMove, int reward, bool gameOver);
-	//void Remember(Matrix oldState, Matrix newState, Matrix nextMove, int reward, bool gameOver);
-	//void TrainLongMemory();
-	//void Plot();
-	//void Train();
+	int CalculateAction(const std::vector<int>& oldState) const;
+	void Remember(const TrainingInfo& trainingInfo);
+	void TrainShortMemory(const TrainingInfo& trainingInfo);
+	void TrainLongMemory();
+	void Plot();
+	void Train();
 	
-	//std::vector<int> m_PlotScores;
-	//std::vector<int> m_PlotMeanScores;
-	//int m_TotalScore = 0;
-	//int m_Highscore = 0;
-	//int m_NrPlayedGames = 0;
+	std::vector<int> m_PlotScores;
+	std::vector<int> m_PlotMeanScores;
+	int m_TotalScore = 0;
+	int m_Highscore = 0;
+	int m_NrPlayedGames = 0;
+
+	const int m_RandomFactor;
+	float m_Gamma; // Discount rate
+	const size_t m_MaxMemory;
+	const size_t m_TrainingBatchSize;
+	std::deque<TrainingInfo> m_Memory;
+	//Model m_Model;
+	//QLearning m_Trainer;
 };
 

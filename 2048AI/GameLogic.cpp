@@ -923,6 +923,52 @@ bool GameLogic::TestSwipeDown() const
 
 
 
+std::vector<int> GameLogic::GetGameState() const
+{
+	// First, organize the NumberSquaresVector so it stores the squares top to bottom, left to right
+	std::sort(m_NumberSquaresVector->begin(), m_NumberSquaresVector->end(), [](std::shared_ptr<dae::GameObject>& a, std::shared_ptr<dae::GameObject>& b)
+		{
+			auto* aComp = a->GetComponent<NumberSquare>();
+			auto* bComp = b->GetComponent<NumberSquare>();
+		
+			if(aComp->GetRowPosIdx() < bComp->GetRowPosIdx())
+				return true;
+
+			if (aComp->GetRowPosIdx() > bComp->GetRowPosIdx())
+				return false;
+
+			// If they're in the same row
+			return aComp->GetColPosIdx() < bComp->GetColPosIdx();
+		});
+
+	// Then save all of the board info in the return vector
+	std::vector<int> returnVector;
+	auto vectorIdx = 0;
+	bool endVectorReached = false;
+	for(auto i = 0; i < 16; i++)
+	{
+		if (endVectorReached == false)
+		{
+			auto* squareComp = m_NumberSquaresVector->operator[](vectorIdx)->GetComponent<NumberSquare>();
+			if (squareComp->GetColPosIdx() == i % 5 && squareComp->GetRowPosIdx() == i / 5)
+			{
+				returnVector.push_back(squareComp->GetValue());
+
+				if (int(m_NumberSquaresVector->size()) > vectorIdx + 1)
+					vectorIdx++;
+				else
+					endVectorReached = true;
+			}
+			else returnVector.push_back(0);
+		}
+		else returnVector.push_back(0);
+	}
+	
+	return returnVector;
+}
+
+
+
 
 
 

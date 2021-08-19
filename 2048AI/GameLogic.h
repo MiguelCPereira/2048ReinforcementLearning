@@ -34,6 +34,8 @@ public:
 	bool TestSwipeUp() const;
 	bool TestSwipeDown() const;
 
+	std::vector<int> GetGameState() const;
+
 private:
 	std::shared_ptr<dae::GameObject> m_GameObject{};
 	std::vector<std::shared_ptr<dae::GameObject>>* m_NumberSquaresVector{};
