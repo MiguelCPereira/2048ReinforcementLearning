@@ -91,18 +91,19 @@
       <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProgramFiles)\Visual Leak Detector\include;$(SolutionDir)3rdParty\SDL2_ttf\include;$(SolutionDir)3rdParty\SDL2_image\include;$(SolutionDir)3rdParty\SDL2\include;$(SolutionDir)Minigin;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProgramFiles)\Visual Leak Detector\include;$(SolutionDir)3rdParty\SDL2_ttf\include;$(SolutionDir)3rdParty\SDL2_image\include;$(SolutionDir)3rdParty\SDL2\include;$(SolutionDir)Minigin;$(SolutionDir)3rdParty\LibTorch\$(Configuration)\include;$(SolutionDir)3rdParty\LibTorch\$(Configuration)\include\torch\csrc\api\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);$(ProgramFiles)\Visual Leak Detector\lib\Win$(PlatformArchitecture);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Minigin.lib;vld.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);$(ProgramFiles)\Visual Leak Detector\lib\Win$(PlatformArchitecture);$(SolutionDir)3rdParty\LibTorch\$(Configuration)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Minigin.lib;vld.lib;torch_cpu.lib;c10.lib;torch.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(SolutionDir)3rdParty\SDL2\lib\$(PlatformTarget)\SDL2.dll" "$(OutputPath)" /R /Y</Command>
+      <Command>xcopy "$(SolutionDir)3rdParty\SDL2\lib\$(PlatformTarget)\SDL2.dll" "$(OutputPath)" /R /Y
+xcopy "$(SolutionDir)3rdParty\LibTorch\$(Configuration)\lib\*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /R /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -112,20 +113,21 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProgramFiles)\Visual Leak Detector\include;$(SolutionDir)3rdParty\SDL2_ttf\include;$(SolutionDir)3rdParty\SDL2_image\include;$(SolutionDir)3rdParty\SDL2\include;$(SolutionDir)Minigin;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProgramFiles)\Visual Leak Detector\include;$(SolutionDir)3rdParty\SDL2_ttf\include;$(SolutionDir)3rdParty\SDL2_image\include;$(SolutionDir)3rdParty\SDL2\include;$(SolutionDir)Minigin;$(SolutionDir)3rdParty\LibTorch\$(Configuration)\include;$(SolutionDir)3rdParty\LibTorch\$(Configuration)\include\torch\csrc\api\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);$(ProgramFiles)\Visual Leak Detector\lib\Win$(PlatformArchitecture);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Minigin.lib;vld.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);$(ProgramFiles)\Visual Leak Detector\lib\Win$(PlatformArchitecture);$(SolutionDir)3rdParty\LibTorch\$(Configuration)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Minigin.lib;vld.lib;torch_cpu.lib;c10.lib;torch.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(SolutionDir)3rdParty\SDL2\lib\$(PlatformTarget)\SDL2.dll" "$(OutputPath)" /R /Y</Command>
+      <Command>xcopy "$(SolutionDir)3rdParty\SDL2\lib\$(PlatformTarget)\SDL2.dll" "$(OutputPath)" /R /Y
+xcopy "$(SolutionDir)3rdParty\LibTorch\$(Configuration)\lib\*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /R /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -133,18 +135,19 @@
       <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProgramFiles)\Visual Leak Detector\include;$(SolutionDir)3rdParty\SDL2_ttf\include;$(SolutionDir)3rdParty\SDL2_image\include;$(SolutionDir)3rdParty\SDL2\include;$(SolutionDir)Minigin;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProgramFiles)\Visual Leak Detector\include;$(SolutionDir)3rdParty\SDL2_ttf\include;$(SolutionDir)3rdParty\SDL2_image\include;$(SolutionDir)3rdParty\SDL2\include;$(SolutionDir)Minigin;$(SolutionDir)3rdParty\LibTorch\$(Configuration)\include;$(SolutionDir)3rdParty\LibTorch\$(Configuration)\include\torch\csrc\api\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);$(ProgramFiles)\Visual Leak Detector\lib\Win$(PlatformArchitecture);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Minigin.lib;vld.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);$(ProgramFiles)\Visual Leak Detector\lib\Win$(PlatformArchitecture);$(SolutionDir)3rdParty\LibTorch\$(Configuration)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Minigin.lib;vld.lib;torch_cpu.lib;c10.lib;torch.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(SolutionDir)3rdParty\SDL2\lib\$(PlatformTarget)\SDL2.dll" "$(OutputPath)" /R /Y</Command>
+      <Command>xcopy "$(SolutionDir)3rdParty\SDL2\lib\$(PlatformTarget)\SDL2.dll" "$(OutputPath)" /R /Y
+xcopy "$(SolutionDir)3rdParty\LibTorch\$(Configuration)\lib\*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /R /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -154,20 +157,21 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProgramFiles)\Visual Leak Detector\include;$(SolutionDir)3rdParty\SDL2_ttf\include;$(SolutionDir)3rdParty\SDL2_image\include;$(SolutionDir)3rdParty\SDL2\include;$(SolutionDir)Minigin;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProgramFiles)\Visual Leak Detector\include;$(SolutionDir)3rdParty\SDL2_ttf\include;$(SolutionDir)3rdParty\SDL2_image\include;$(SolutionDir)3rdParty\SDL2\include;$(SolutionDir)Minigin;$(SolutionDir)3rdParty\LibTorch\$(Configuration)\include;$(SolutionDir)3rdParty\LibTorch\$(Configuration)\include\torch\csrc\api\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);$(ProgramFiles)\Visual Leak Detector\lib\Win$(PlatformArchitecture);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Minigin.lib;vld.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);$(ProgramFiles)\Visual Leak Detector\lib\Win$(PlatformArchitecture);$(SolutionDir)3rdParty\LibTorch\$(Configuration)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Minigin.lib;vld.lib;torch_cpu.lib;c10.lib;torch.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(SolutionDir)3rdParty\SDL2\lib\$(PlatformTarget)\SDL2.dll" "$(OutputPath)" /R /Y</Command>
+      <Command>xcopy "$(SolutionDir)3rdParty\SDL2\lib\$(PlatformTarget)\SDL2.dll" "$(OutputPath)" /R /Y
+xcopy "$(SolutionDir)3rdParty\LibTorch\$(Configuration)\lib\*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /R /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -175,6 +179,7 @@
     <ClCompile Include="Factory.cpp" />
     <ClCompile Include="GameCommands.cpp" />
     <ClCompile Include="GameLogic.cpp" />
+    <ClCompile Include="LinearQNet.cpp" />
     <ClCompile Include="NumberSquare.cpp" />
     <ClCompile Include="PlayerAI.cpp" />
     <ClCompile Include="ScoreDisplay.cpp" />
@@ -183,6 +188,7 @@
     <ClInclude Include="Factory.h" />
     <ClInclude Include="GameCommands.h" />
     <ClInclude Include="GameLogic.h" />
+    <ClInclude Include="LinearQNet.h" />
     <ClInclude Include="NumberSquare.h" />
     <ClInclude Include="PlayerAI.h" />
     <ClInclude Include="ScoreDisplay.h" />

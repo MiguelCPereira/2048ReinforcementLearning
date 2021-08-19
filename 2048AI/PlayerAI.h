@@ -4,6 +4,7 @@
 #include "BaseComponent.h"
 
 class GameLogic;
+class LinearQNet;
 
 class PlayerAI final : public dae::BaseComponent
 {
@@ -29,7 +30,7 @@ private:
 
 	// These functions and member variables are still unfinished and mostly just wishful planning.
 	// As so, duo to their early unrefined state, the overall structure and logic behind them
-	// is still very reminiscent to this Snake Python tutorial:
+	// is still very reminiscent of this Snake Python tutorial:
 	// https://www.youtube.com/watch?v=PJl4iabBEz0&t=0s
 
 	struct TrainingInfo
@@ -59,7 +60,7 @@ private:
 	const size_t m_MaxMemory;
 	const size_t m_TrainingBatchSize;
 	std::deque<TrainingInfo> m_Memory;
-	//Model m_Model;
+	LinearQNet* m_Model;
 	//QLearning m_Trainer;
 };
 

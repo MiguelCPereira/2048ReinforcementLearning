@@ -1,9 +1,10 @@
 #include "PlayerAI.h"
-
 #include <algorithm>
 #include <iostream>
+#include <torch/torch.h>
 #include "GameLogic.h"
 #include "GameObject.h"
+#include "LinearQNet.h"
 
 
 PlayerAI::PlayerAI(const std::shared_ptr<dae::GameObject>& gameObject, const std::shared_ptr<dae::GameObject>& gameLogicGObj, float timeBetweenMoves)
@@ -23,10 +24,11 @@ PlayerAI::PlayerAI(const std::shared_ptr<dae::GameObject>& gameObject, const std
 	, m_MaxMemory(10000/*0*/)
 	, m_TrainingBatchSize(100/*0*/)
 	, m_Memory()
-	//, m_Model = Linear_QNet(11, 256, 3)
+	, m_Model()
 	//, m_Trainer(self.model, lr = LR, gamma = self.gamma)
 {
 	m_GameLogic = gameLogicGObj->GetComponent<GameLogic>();
+	m_Model = new LinearQNet(11, 256, 3);
 }
 
 void PlayerAI::Initialize()
@@ -70,7 +72,7 @@ void PlayerAI::Update(const float deltaTime)
 
 
 
-int PlayerAI::CalculateAction(const std::vector<int>& oldState) const
+int PlayerAI::CalculateAction(const std::vector<int>& /*oldState*/) const
 {
 	const auto epsilon = m_RandomFactor - m_NrPlayedGames;
 	int finalMove = 0;
@@ -78,17 +80,15 @@ int PlayerAI::CalculateAction(const std::vector<int>& oldState) const
 	// Progressively smaller chance of a random action (exploration)
 	// In the beginning, an 80/200 chance, and then decreasing until the 80th game, where the forced exploration stops
 	
-	if (rand() % 201 < epsilon) // If randomizing
+	if (rand() % 201 < epsilon) // If the epsilon's bigger, make the final move random
 	{
 		finalMove = rand() % 5;
 	}
-	else // If not
+	else // If not, make the move a prediction from the m_Model
 	{
-		// Need to find a torch replacement for C++
-		
-		//auto tensorState = torch.tensor(state, dtype = torch.float);
-		//auto prediction = m_Model.Predict(tensorState);
-		//finalMove = torch.argmax(prediciton).item();
+		//auto tensorState = torch::tensor(state, dtype = torch.float);
+		//auto prediction = m_Model->Predict(tensorState);
+		//finalMove = torch::argmax(prediciton).item();
 	}
 
 	return finalMove;
@@ -104,7 +104,7 @@ void PlayerAI::Remember(const TrainingInfo& trainingInfo)
 	m_Memory.push_back(trainingInfo);
 }
 
-void PlayerAI::TrainShortMemory(const TrainingInfo& trainingInfo)
+void PlayerAI::TrainShortMemory(const TrainingInfo& /*trainingInfo*/)
 {
 	//m_Trainer.TrainStep(trainingInfo);
 }
@@ -116,7 +116,7 @@ void PlayerAI::TrainLongMemory()
 	
 	if(m_Memory.size() >= m_TrainingBatchSize)
 	{
-		for (size_t i = 0; i < m_Memory.size(); ++i) { sampleIdx.push_back(i); }
+		for (auto i = 0; i < m_Memory.size(); ++i) { sampleIdx.push_back(i); }
 		std::random_shuffle(sampleIdx.begin(), sampleIdx.end());
 		for (size_t i = 0; i < m_TrainingBatchSize; ++i) { sample.push_back(m_Memory[sampleIdx[i]]); }
 	}
@@ -193,7 +193,7 @@ void PlayerAI::Train()
 			{
 				m_Highscore = score;
 				std::cout << "Game " << m_NrPlayedGames << " | Score: " << score << " Record: " << m_Highscore << '\n';
-				// m_Model.save();
+				m_Model->Save();
 				
 				m_PlotScores.push_back(score);
 				m_TotalScore += score;

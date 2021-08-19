@@ -10,7 +10,6 @@
 !/vld.props
 
 # Folder to not ignore
-!/3rdParty/
 !/Data/
 
 # Folders to ignore only partially
@@ -20,3 +19,5 @@
 !/2048AI/
 /2048AI/Win32
 /2048AI/x64/
+!/3rdParty/
+/3rdParty/LibTorch
