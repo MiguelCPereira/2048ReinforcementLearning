@@ -1,7 +1,8 @@
 #include "PlayerAI.h"
 #include <algorithm>
 #include <iostream>
-#include <torch/torch.h>
+#include <torch/torch.h> // Uncomment this include for the program to run without crashing (and 2 others on QLearningTrainer.h and LinearQNet.h)
+//#define NOMINMAX
 #include "GameLogic.h"
 #include "GameObject.h"
 #include "LinearQNet.h"
@@ -12,23 +13,23 @@ PlayerAI::PlayerAI(const std::shared_ptr<dae::GameObject>& gameObject, const std
 	, m_GameLogic()
 	, m_TimeBetweenMoves(timeBetweenMoves)
 	, m_MoveTimeCounter()
-
-	, m_PlotScores()
-	, m_PlotMeanScores()
-	, m_TotalScore()
+	, m_AllScores()
 	, m_Highscore()
 	, m_NrPlayedGames()
 
-	, m_RandomFactor(80)
-	, m_Gamma(0.9f) // Discount rate
-	, m_MaxMemory(10000/*0*/)
-	, m_TrainingBatchSize(100/*0*/)
+	, m_LearningRate(0.001)
+	, m_RandomFactor(80) // Decreasing amount of random moves the AI will make for exploration's sake
+	, m_Discount(0.9f) // The percentage in which the QLearningTrainer algorithm will take the future reward in account compared to the current reward
+	, m_MaxMemory(100000) // Max amount of possibly stored moves in the m_Memory container
+	, m_TrainingBatchSize(1000) // Amount of moves to sample from m_Memory to train in batches
 	, m_Memory()
 	, m_Model()
-	//, m_Trainer(self.model, lr = LR, gamma = self.gamma)
+	, m_Trainer()
 {
 	m_GameLogic = gameLogicGObj->GetComponent<GameLogic>();
-	m_Model = new LinearQNet(11, 256, 3);
+	// 16 inputs for each square in the board, an approximated hiddenSize of 256 and 4 possible outputs for each swipe type
+	m_Model = new LinearQNet(16, 256, 4);
+	m_Trainer = new QLearningTrainer(m_Model, m_Discount, m_LearningRate);
 }
 
 void PlayerAI::Initialize()
@@ -72,7 +73,7 @@ void PlayerAI::Update(const float deltaTime)
 
 
 
-int PlayerAI::CalculateAction(const std::vector<int>& /*oldState*/) const
+int PlayerAI::CalculateAction(std::vector<int>* oldState) const
 {
 	const auto epsilon = m_RandomFactor - m_NrPlayedGames;
 	int finalMove = 0;
@@ -86,15 +87,16 @@ int PlayerAI::CalculateAction(const std::vector<int>& /*oldState*/) const
 	}
 	else // If not, make the move a prediction from the m_Model
 	{
-		//auto tensorState = torch::tensor(state, dtype = torch.float);
-		//auto prediction = m_Model->Predict(tensorState);
-		//finalMove = torch::argmax(prediciton).item();
+		//const auto options = torch::TensorOptions().dtype(torch::kFloat64);
+		//const auto tensorState = torch::from_blob(oldState, { 16 }, options);
+		//const auto prediction = m_Model->Forward(tensorState);
+		//finalMove = torch::argmax(prediction).item().toInt(); // I'm not sure this will translate the scalar into an appropriate int between 1 and 4
 	}
 
 	return finalMove;
 }
 
-void PlayerAI::Remember(const TrainingInfo& trainingInfo)
+void PlayerAI::Remember(TrainingInfo* trainingInfo)
 {
 	// Pop_back m_Memory deque if the size has reached m_MaxMemory
 	if (m_Memory.size() >= m_MaxMemory)
@@ -104,103 +106,100 @@ void PlayerAI::Remember(const TrainingInfo& trainingInfo)
 	m_Memory.push_back(trainingInfo);
 }
 
-void PlayerAI::TrainShortMemory(const TrainingInfo& /*trainingInfo*/)
+void PlayerAI::TrainStepWithSample()
 {
-	//m_Trainer.TrainStep(trainingInfo);
-}
-
-void PlayerAI::TrainLongMemory()
-{
-	std::deque<TrainingInfo> sample;
+	std::deque<TrainingInfo*> sample;
 	std::vector<int> sampleIdx;
-	
-	if(m_Memory.size() >= m_TrainingBatchSize)
+
+	if(m_Memory.size() >= m_TrainingBatchSize) // If the memory has enough to collect a sample of the pre-defined batch-size
 	{
-		for (auto i = 0; i < m_Memory.size(); ++i) { sampleIdx.push_back(i); }
+		// Get all the m_Memory indexes in an int vector
+		for (auto i = 0; i < m_Memory.size(); ++i)
+		{
+			sampleIdx.push_back(i);
+		}
+		
+		// Shuffle all the new vector
 		std::random_shuffle(sampleIdx.begin(), sampleIdx.end());
-		for (size_t i = 0; i < m_TrainingBatchSize; ++i) { sample.push_back(m_Memory[sampleIdx[i]]); }
+		
+		// And then collect a batch-sized sample of TrainingInfos from the memory correspondent to the shuffled indexes
+		for (size_t i = 0; i < m_TrainingBatchSize; ++i)
+		{
+			sample.push_back(m_Memory[sampleIdx[i]]);
+		}
 	}
-	else
+	else // If not
 	{
+		// Just use all the info in the memory as a sample
 		sample = m_Memory;
 	}
 
-	// Need to divide TrainingInfo into individual containers of OldStates, NewStates, NextMoves, etc
-	// But maybe it's better to do it in the m_Trainer function
-	// m_Trainer.TrainStep(sample);
-
-	// Oooooooooooooor
-
-	// I can just do this
-	//for(auto trainingInfo : sample)
-	//	m_Trainer.TrainStep(trainingInfo);
-}
-
-void PlayerAI::Plot()
-{
+	// And then call the trainStep function for all the sampled TrainingInfos
+	for(auto* trainingInfo : sample)
+		m_Trainer->TrainStep(trainingInfo);
 }
 
 void PlayerAI::Train()
 {
-	if (m_GameLogic->GetGameOver() == false)
+	// Get the current game state and calculate the AI's next move with it
+	auto* oldState = m_GameLogic->GetGameState();
+	const auto nextMove = CalculateAction(oldState);
+
+	// Play said move and store the reward
+	// The reward returned by the Swipe functions is calculated by adding 1
+	// for each piece collapsed and subtracting 1 for each wasted move
+	// and subtracting 10 when losing the game
+	auto reward = 0;
+	switch (nextMove)
 	{
-		// Get the current game state and calculate the AI's next move with it
-		const auto oldState = m_GameLogic->GetGameState();
-		const auto nextMove = CalculateAction(oldState);
+	case 1:
+		reward = m_GameLogic->SwipeUp();
+		break;
+	case 2:
+		reward = m_GameLogic->SwipeDown();
+		break;
+	case 3:
+		reward = m_GameLogic->SwipeLeft();
+		break;
+	case 4:
+		reward = m_GameLogic->SwipeRight();
+		break;
+	default:
+		break;
+	}
 
-		// Play said move and store the reward
-		// The reward returned by the Swipe functions is calculated by adding 1
-		// for each piece collapsed and subtracting 1 for each piece spawned
-		// and subtracting 10 when losing the game
-		int reward = 0;
-		switch (nextMove)
+	// And get the new current game state, score and gameOver
+	auto* newState = m_GameLogic->GetGameState();
+	const auto score = m_GameLogic->GetScore();
+	const auto gameOver = m_GameLogic->GetGameOver();
+
+	// Train the AI with this move's info
+	auto* pNextMove = new int(nextMove);
+	auto* pReward = new int(reward);
+	auto* trainingInfo = new TrainingInfo{ oldState, newState, pNextMove, pReward, gameOver };
+	m_Trainer->TrainStep(trainingInfo);
+
+	// And save the move in the m_Memory container
+	Remember(trainingInfo);
+
+	// If this move made the game end
+	if (gameOver)
+	{
+		// Increase the played games counter
+		m_NrPlayedGames++;
+		
+		// Train step with a sample of moves from the m_Memory container
+		TrainStepWithSample();
+
+		// If it's a new highscore, update the member variable and save the model
+		if (score > m_Highscore)
 		{
-		case 1:
-			reward = m_GameLogic->SwipeUp();
-			break;
-		case 2:
-			reward = m_GameLogic->SwipeDown();
-			break;
-		case 3:
-			reward = m_GameLogic->SwipeLeft();
-			break;
-		case 4:
-			reward = m_GameLogic->SwipeRight();
-			break;
-		default:
-			break;
-
+			m_Highscore = score;
+			m_Model->Save();
 		}
 
-		// And get the new current game state
-		const auto score = m_GameLogic->GetScore();
-		const auto gameOver = m_GameLogic->GetGameOver();
-		const auto newState = m_GameLogic->GetGameState();
-
-		// Train the short memory and remember
-		const TrainingInfo trainingInfo = { oldState, newState, nextMove, reward, gameOver };
-		TrainShortMemory(trainingInfo);
-		Remember(trainingInfo);
-
-		// If this move made the game end
-		if (gameOver)
-		{
-			// Train the long memory and plot the result
-			m_NrPlayedGames++;
-			TrainLongMemory();
-
-			if (score > m_Highscore)
-			{
-				m_Highscore = score;
-				std::cout << "Game " << m_NrPlayedGames << " | Score: " << score << " Record: " << m_Highscore << '\n';
-				m_Model->Save();
-				
-				m_PlotScores.push_back(score);
-				m_TotalScore += score;
-				const auto meanScore = m_TotalScore / m_NrPlayedGames;
-				m_PlotMeanScores.push_back(meanScore);
-				Plot();
-			}
-		}
+		// And finally print out the game's info to the console
+		std::cout << "Game " << m_NrPlayedGames << " | Score: " << score << " Record: " << m_Highscore << '\n';
+		m_AllScores.push_back(score);
 	}
 }

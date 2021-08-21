@@ -182,6 +182,7 @@ xcopy "$(SolutionDir)3rdParty\LibTorch\$(Configuration)\lib\*.dll" "$(SolutionDi
     <ClCompile Include="LinearQNet.cpp" />
     <ClCompile Include="NumberSquare.cpp" />
     <ClCompile Include="PlayerAI.cpp" />
+    <ClCompile Include="QLearningTrainer.cpp" />
     <ClCompile Include="ScoreDisplay.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -191,6 +192,7 @@ xcopy "$(SolutionDir)3rdParty\LibTorch\$(Configuration)\lib\*.dll" "$(SolutionDi
     <ClInclude Include="LinearQNet.h" />
     <ClInclude Include="NumberSquare.h" />
     <ClInclude Include="PlayerAI.h" />
+    <ClInclude Include="QLearningTrainer.h" />
     <ClInclude Include="ScoreDisplay.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

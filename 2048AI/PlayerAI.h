@@ -2,6 +2,7 @@
 #include <deque>
 #include <memory>
 #include "BaseComponent.h"
+#include "QLearningTrainer.h"
 
 class GameLogic;
 class LinearQNet;
@@ -22,45 +23,26 @@ public:
 	void Update(const float deltaTime) override;
 
 private:
+	int CalculateAction(std::vector<int>* oldState) const;
+	void Remember(TrainingInfo* trainingInfo);
+	void TrainStepWithSample();
+	void Train();
+	
 	std::shared_ptr<dae::GameObject> m_GameObject{};
 	GameLogic* m_GameLogic{};
 	const float m_TimeBetweenMoves;
 	float m_MoveTimeCounter;
+	std::vector<int> m_AllScores;
+	int m_Highscore;
+	int m_NrPlayedGames;
 
-
-	// These functions and member variables are still unfinished and mostly just wishful planning.
-	// As so, duo to their early unrefined state, the overall structure and logic behind them
-	// is still very reminiscent of this Snake Python tutorial:
-	// https://www.youtube.com/watch?v=PJl4iabBEz0&t=0s
-
-	struct TrainingInfo
-	{
-		std::vector<int> oldState;
-		std::vector<int> newState;
-		int nextMove;
-		int reward;
-		bool gameOver;
-	};
-	
-	int CalculateAction(const std::vector<int>& oldState) const;
-	void Remember(const TrainingInfo& trainingInfo);
-	void TrainShortMemory(const TrainingInfo& trainingInfo);
-	void TrainLongMemory();
-	void Plot();
-	void Train();
-	
-	std::vector<int> m_PlotScores;
-	std::vector<int> m_PlotMeanScores;
-	int m_TotalScore = 0;
-	int m_Highscore = 0;
-	int m_NrPlayedGames = 0;
-
+	const double m_LearningRate;
 	const int m_RandomFactor;
-	float m_Gamma; // Discount rate
+	float m_Discount;
 	const size_t m_MaxMemory;
 	const size_t m_TrainingBatchSize;
-	std::deque<TrainingInfo> m_Memory;
+	std::deque<TrainingInfo*> m_Memory;
 	LinearQNet* m_Model;
-	//QLearning m_Trainer;
+	QLearningTrainer* m_Trainer;
 };
 

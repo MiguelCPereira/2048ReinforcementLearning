@@ -36,6 +36,9 @@
     <ClCompile Include="LinearQNet.cpp">
       <Filter>AI Training</Filter>
     </ClCompile>
+    <ClCompile Include="QLearningTrainer.cpp">
+      <Filter>AI Training</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NumberSquare.h">
@@ -57,6 +60,9 @@
       <Filter>Components</Filter>
     </ClInclude>
     <ClInclude Include="LinearQNet.h">
+      <Filter>AI Training</Filter>
+    </ClInclude>
+    <ClInclude Include="QLearningTrainer.h">
       <Filter>AI Training</Filter>
     </ClInclude>
   </ItemGroup>

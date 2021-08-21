@@ -2,18 +2,18 @@
 #include "LinearQNet.h"
 
 LinearQNet::LinearQNet(int inputSize, int hiddenSize, int outputSize)
-    : m_LinearA(inputSize, hiddenSize)
-	, m_LinearB(hiddenSize, outputSize)
+    //: m_LinearA(inputSize, hiddenSize)
+	//, m_LinearB(hiddenSize, outputSize)
 {
 }
 
-torch::Tensor LinearQNet::Forward(torch::Tensor x)
-{
-    x = torch::relu(m_LinearA(x));
-    x = m_LinearB(x);
-	
-    return x;
-}
+//torch::Tensor LinearQNet::Forward(torch::Tensor x)
+//{
+//    x = torch::relu(m_LinearA(x));
+//    x = m_LinearB(x);
+//	
+//    return x;
+//}
 
 void LinearQNet::Save(std::string fileName) const
 {
