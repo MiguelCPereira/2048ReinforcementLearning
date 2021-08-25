@@ -3,7 +3,9 @@
 An AI that learns how to play the game [2048](https://en.wikipedia.org/wiki/2048_(video_game)) through deep reinforcement learning.
 The final result ended up falling short of my goal, as I explain in more detail down in the [Results](#results) section, but if for nothing else, this project still showcases the basic concepts of Machine Learning and Neural Networking, without any dependencies to 3rd party frameworks / topic-specific libraries.
 
+
 ![Demo](./Data/Demo.gif)
+
 
 
 ## Table of Contents
@@ -15,11 +17,13 @@ The final result ended up falling short of my goal, as I explain in more detail 
 - [Links](#links)
 
 
+
 ## Reinforcement Learning
 
 For the bot to learn how to play, every time it makes a move, it saves all the information regarding its environment (the pieces in the board before and after the move, the move itself, its reward and if it reached a game over) in a container - its memory. With every said move, it will also update its [neural network](#neural-networking) and, at the end of every game, it will train itself with a random chunk of the moves previously stored in the memory (through the neural network once again). This way, it will start off by making random moves at first, but it will eventually start learning from its past experiences, taking into account the [rewards](#game-state-and-reward) it got from each decision.
 
 To avoid stagnation, this prediction of moves is intervaled with an increasingly smaller chance of random decisions - as, in reinforcement learning, once a supposedly optimal path is found, the bot will stick to it, stopping itself from exploring new random scenarios which might lead, in the long run, to a better score. This random factor starts off as a 50% chance, but it decreases every game until the 100th one, where it caps off at 10%.
+
 
 
 ## Neural Networking
@@ -39,9 +43,11 @@ The way the game state is fed to the network and the way the reward is calculate
 - And the reward, the addition of all the log2 values of the collapsed pieces, minus a penalty of -1 for moving and another penalty for making an ilegal move (not changing anything on the board).
 
 
+
 ## Training
 
 The bot could restrain itself to learn only from the direct reward of each current move, but that would make their behaviour very limited and lacking in foresight - stopping itself from making moves with a worse direct reward, even in exchange for a better future one (for example, not making the most combinations possible in a move if it entails setting up a bigger future combination). To avoid this, the way it actually trains itself is based on the [Q-Learning algorithm](https://en.wikipedia.org/wiki/Q-learning), which calculates the optimal move, if it's not the last one in the game, by adding the current reward to the next move's prediction multiplied by a discount rate (in this case, 0.9), and then propagates this result through the rest of the network.
+
 
 
 ## Results
@@ -55,7 +61,9 @@ After 1150 episodes, in its current state, the bot didn't show much of a signifi
 
 All the scores from this last unsuccessful train session can be found here:
 
-![Training Chart](./Data/Training Chart.png)
+
+![Score Graph](https://github.com/MiguelCPereira/2048ReinforcementLearning/blob/main/Data/Training%20Chart.png)
+
 
 
 ## Links
