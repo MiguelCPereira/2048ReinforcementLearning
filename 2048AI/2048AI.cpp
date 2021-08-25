@@ -34,14 +34,14 @@ void SetUpGame()
 	scene.Add(backgroundGO);
 
 	// Make the game logic
-	const auto gameLogicGO = MakeGameLogic();
+	const auto gameLogicGO = MakeGameLogic(true);
 	scene.Add(gameLogicGO);
 
 	// Make the score display
 	scene.Add(MakeScoreDisplay(gameLogicGO));
 
 	// Set up AI
-	scene.Add(MakePlayerAI(gameLogicGO, 0.0001f));
+	scene.Add(MakePlayerAI(gameLogicGO, 0.f));
 
 	// Set up the temporary player input --- to set this one up, comment out the previous line
 	//SetUpPlayerInput(gameLogicGO);

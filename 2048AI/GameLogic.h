@@ -6,7 +6,7 @@
 class GameLogic final : public dae::BaseComponent
 {
 public:
-	explicit GameLogic(const std::shared_ptr<dae::GameObject>& gameObject, float squareSpacing);
+	explicit GameLogic(const std::shared_ptr<dae::GameObject>& gameObject, float squareSpacing, bool withVisuals);
 
 	GameLogic(const GameLogic& other) = delete;
 	GameLogic(GameLogic&& other) noexcept = delete;
@@ -46,5 +46,6 @@ private:
 	const float m_GameOverTime;
 	float m_GameOverCounter;
 	dae::TextComponent* m_GameOverTitle;
+	bool m_WithVisuals;
 };
 

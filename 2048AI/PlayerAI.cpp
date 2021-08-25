@@ -17,7 +17,8 @@ PlayerAI::PlayerAI(const std::shared_ptr<dae::GameObject>& gameObject, const std
 	, m_NrPlayedGames()
 
 	, m_LearningRate(0.001f)
-	, m_RandomFactor(80) // Decreasing amount of random moves the AI will make for exploration's sake
+	, m_RandomFactor(100) // Decreasing amount of random moves the AI will make for exploration's sake
+	, m_MinRandomAmount(20) // The minimum amount the random factor can decrease to
 	, m_Discount(0.9f) // The percentage in which the QLearningTrainer algorithm will take the future reward in account compared to the current reward
 	, m_MaxMemory(100000) // Max amount of possibly stored moves in the m_Memory container
 	, m_TrainingBatchSize(1000) // Amount of moves to sample from m_Memory to train in batches
@@ -40,10 +41,17 @@ void PlayerAI::Update(const float deltaTime)
 	// Right now, the AI only plays randomly
 	if (m_GameLogic->GetGameOver() == false)
 	{
-		m_MoveTimeCounter += deltaTime;
-		if (m_MoveTimeCounter >= m_TimeBetweenMoves)
+		if (m_TimeBetweenMoves > 0.f)
 		{
-			m_MoveTimeCounter = 0.f;
+			m_MoveTimeCounter += deltaTime;
+			if (m_MoveTimeCounter >= m_TimeBetweenMoves)
+			{
+				m_MoveTimeCounter = 0.f;
+				MakeNextMove();
+			}
+		}
+		else
+		{
 			MakeNextMove();
 		}
 	}
@@ -53,11 +61,14 @@ void PlayerAI::Update(const float deltaTime)
 
 int PlayerAI::CalculateAction(std::vector<int>* oldState) const
 {
-	const auto epsilon = m_RandomFactor - m_NrPlayedGames;
+	auto epsilon = m_RandomFactor - m_NrPlayedGames;
+	if (epsilon < m_MinRandomAmount)
+		epsilon = m_MinRandomAmount;
+	
 	int finalMove = 1;
 
 	// Progressively smaller chance of a random action (exploration)
-	// In the beginning, an 80/200 chance, and then decreasing until the 80th game, where the forced exploration stops
+	// In the beginning, an 1/2 chance, and then decreasing until the 100th game, where it tanks at 1/10
 	
 	if (rand() % 201 < epsilon) // If the epsilon's bigger, make the final move random
 	{
@@ -71,15 +82,17 @@ int PlayerAI::CalculateAction(std::vector<int>* oldState) const
 			oldStateRowVec.coeffRef(0, i) = oldState->operator[](i);
 		
 		const auto predictedMoveRowVec = m_Model->PropagateForward(oldStateRowVec);
-		float maxValue = oldStateRowVec.coeffRef(1, 0);
+		float maxValue = oldStateRowVec.coeffRef(0, 0);
 		for (int i = 0; i < predictedMoveRowVec.size(); i++)
 		{
-			if(oldStateRowVec.coeffRef(1, i) > maxValue)
+			if(oldStateRowVec.coeffRef(0, i) > maxValue)
 			{
-				maxValue = oldStateRowVec.coeffRef(1, i);
+				maxValue = oldStateRowVec.coeffRef(0, i);
 				finalMove = i + 1;
 			}
+			//std::cout << oldStateRowVec.coeffRef(0, i) << " ";
 		}
+		//std::cout << "-> final move: " << finalMove << "\n";
 	}
 
 	return finalMove;
@@ -183,8 +196,16 @@ void PlayerAI::MakeNextMove()
 			std::cout << "NEW HIGHSCORE!!\n";
 		}
 
-		// And finally print out the game's info to the console
-		std::cout << "Game " << m_NrPlayedGames << " | Score: " << score << " Record: " << m_Highscore << '\n';
+		// Add the new score to the vector
 		m_AllScores.push_back(score);
+
+		// Calculate the mean
+		int mean = 0;
+		for (auto sco : m_AllScores)
+			mean += sco;
+		mean /= m_NrPlayedGames;
+
+		// And finally print out the game's info to the console
+		std::cout << "Game " << m_NrPlayedGames << " | Score: " << score << " Record: " << m_Highscore << " | Mean: " << mean << '\n';
 	}
 }

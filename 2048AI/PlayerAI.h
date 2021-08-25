@@ -38,6 +38,7 @@ private:
 
 	const float m_LearningRate;
 	const int m_RandomFactor;
+	const int m_MinRandomAmount;
 	float m_Discount;
 	const size_t m_MaxMemory;
 	const size_t m_TrainingBatchSize;

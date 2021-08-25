@@ -67,22 +67,18 @@ RowVector NeuralNetwork::PropagateForward(RowVector& input)
     m_NeuronLayers.front()->block(0, 0, 1, m_NeuronLayers.front()->size() - 1) = input;
 
     // Propagate the data forward
-	// By making each neuron layer the dot product of the previous neuron layer and its respective weight
+	// By making each neuron layer the matrix dot product of the previous neuron layer and its respective weight
     for (unsigned int i = 1; i < m_Topology.size(); i++)
         (*m_NeuronLayers[i]) = (*m_NeuronLayers[i - 1]) * (*m_ConnectionWeights[i - 1]);
 
     // Apply the activation function to each layer of the network
     for (unsigned int i = 1; i < m_Topology.size() - 1; i++)
     {
-        auto layer = m_NeuronLayers[i]->block(0, 0, 1, m_Topology[i]);
-        for (unsigned int row = 0; row < layer.rows(); row++)
-        {
-            for (unsigned int col = 0; col < layer.cols(); col++)
-            {
-                // Update the connection's weight with the recorded errors from each neuron
-                layer.coeffRef(row, col) = ActivationFunction(layer.coeffRef(row, col));
-            }
-        }
+        for (unsigned int col = 0; col < m_Topology[i]; col++)
+		{
+			// Update the connection's weight with the recorded errors from each neuron
+            m_NeuronLayers[i]->coeffRef(0, col) = ActivationFunction(m_NeuronLayers[i]->coeffRef(0, col));
+		}
     }
 
 	// Return the output layer
@@ -137,6 +133,7 @@ void NeuralNetwork::UpdateWeights()
 
 float NeuralNetwork::ActivationFunction(float x)
 {
+	// Get the hyperbolic tangent of the neuron's value
     return tanhf(x);
 }
 

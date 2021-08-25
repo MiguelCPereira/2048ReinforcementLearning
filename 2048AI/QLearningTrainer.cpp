@@ -9,8 +9,7 @@ QLearningTrainer::QLearningTrainer(NeuralNetwork* model, float discount)
 
 void QLearningTrainer::TrainStep(TrainingInfo* trainingInfo) const
 {
-	
-    // Create a row vector from the old state values
+	// Create a row vector from the old state values
     Eigen::RowVectorXf oldStateRowVec(trainingInfo->oldState->size());
 	for (int i = 0; i < trainingInfo->oldState->size(); i++)
         oldStateRowVec.coeffRef(0, i) = trainingInfo->oldState->operator[](i);

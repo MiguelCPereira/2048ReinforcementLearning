@@ -3,7 +3,7 @@
 #include "GraphicsComponent.h"
 #include "TextComponent.h"
 
-NumberSquare::NumberSquare(const std::shared_ptr<dae::GameObject>& gameObject, int number, int rowIdx, int colIdx, float spaceBetweenSquares)
+NumberSquare::NumberSquare(const std::shared_ptr<dae::GameObject>& gameObject, int number, int rowIdx, int colIdx, float spaceBetweenSquares, bool withVisuals)
 	: m_GameObject(gameObject)
 	, m_Value(number)
 	, m_ValueBuffer(number)
@@ -13,6 +13,7 @@ NumberSquare::NumberSquare(const std::shared_ptr<dae::GameObject>& gameObject, i
 	, m_ColPosIdxBuffer(colIdx)
 	, m_SquareSpacing(spaceBetweenSquares)
 	, m_HasJustCollapsed(false)
+	, m_WithVisuals(withVisuals)
 {
 }
 
@@ -58,36 +59,53 @@ void NumberSquare::SetColPosIdxBuffer(int newColPos)
 
 void NumberSquare::UpdateValues()
 {
-	auto* text = m_GameObject->GetComponent<dae::TextComponent>();
-	
-	if (m_RowPosIdx != m_RowPosIdxBuffer || m_ColPosIdx != m_ColPosIdxBuffer)
+	if (m_WithVisuals)
 	{
-		auto* graphics = m_GameObject->GetComponent<dae::GraphicsComponent>();
-		graphics->SetPosition(graphics->GetPosition().first + m_SquareSpacing * float(m_ColPosIdxBuffer - m_ColPosIdx),
-			graphics->GetPosition().second + m_SquareSpacing * float(m_RowPosIdxBuffer - m_RowPosIdx));
+		auto* text = m_GameObject->GetComponent<dae::TextComponent>();
 
-		text->SetPosition(text->GetPosition().first + m_SquareSpacing * float(m_ColPosIdxBuffer - m_ColPosIdx),
-			text->GetPosition().second + m_SquareSpacing * float(m_RowPosIdxBuffer - m_RowPosIdx));
-
-		m_RowPosIdx = m_RowPosIdxBuffer;
-		m_ColPosIdx = m_ColPosIdxBuffer;
-	}
-
-	if(m_Value != m_ValueBuffer)
-	{
-		const auto newValueText = std::to_string(m_ValueBuffer);
-		const auto oldValueText = std::to_string(m_Value);
-		text->SetText(newValueText);
-
-		// If the new value has 1 more digit than the previous one
-		if (newValueText.size() > oldValueText.size())
+		if (m_RowPosIdx != m_RowPosIdxBuffer || m_ColPosIdx != m_ColPosIdxBuffer)
 		{
-			// Offset the text a bit
-			const auto charOffset = 6.f;
-			text->SetPosition(text->GetPosition().first - charOffset, text->GetPosition().second);
+			auto* graphics = m_GameObject->GetComponent<dae::GraphicsComponent>();
+			graphics->SetPosition(graphics->GetPosition().first + m_SquareSpacing * float(m_ColPosIdxBuffer - m_ColPosIdx),
+				graphics->GetPosition().second + m_SquareSpacing * float(m_RowPosIdxBuffer - m_RowPosIdx));
+
+			text->SetPosition(text->GetPosition().first + m_SquareSpacing * float(m_ColPosIdxBuffer - m_ColPosIdx),
+				text->GetPosition().second + m_SquareSpacing * float(m_RowPosIdxBuffer - m_RowPosIdx));
+
+			m_RowPosIdx = m_RowPosIdxBuffer;
+			m_ColPosIdx = m_ColPosIdxBuffer;
 		}
-		
-		m_Value = m_ValueBuffer;
-		m_HasJustCollapsed = false;
+
+		if (m_Value != m_ValueBuffer)
+		{
+			const auto newValueText = std::to_string(m_ValueBuffer);
+			const auto oldValueText = std::to_string(m_Value);
+			text->SetText(newValueText);
+
+			// If the new value has 1 more digit than the previous one
+			if (newValueText.size() > oldValueText.size())
+			{
+				// Offset the text a bit
+				const auto charOffset = 6.f;
+				text->SetPosition(text->GetPosition().first - charOffset, text->GetPosition().second);
+			}
+
+			m_Value = m_ValueBuffer;
+			m_HasJustCollapsed = false;
+		}
+	}
+	else
+	{
+		if (m_RowPosIdx != m_RowPosIdxBuffer || m_ColPosIdx != m_ColPosIdxBuffer)
+		{
+			m_RowPosIdx = m_RowPosIdxBuffer;
+			m_ColPosIdx = m_ColPosIdxBuffer;
+		}
+
+		if (m_Value != m_ValueBuffer)
+		{
+			m_Value = m_ValueBuffer;
+			m_HasJustCollapsed = false;
+		}
 	}
 }

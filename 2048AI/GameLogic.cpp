@@ -8,7 +8,7 @@
 #include "Scene.h"
 #include "TextComponent.h"
 
-GameLogic::GameLogic(const std::shared_ptr<dae::GameObject>& gameObject, float squareSpacing)
+GameLogic::GameLogic(const std::shared_ptr<dae::GameObject>& gameObject, float squareSpacing, bool withVisuals)
 	: m_GameObject(gameObject)
 	, m_NumberSquaresVector()
 	, m_FreeSquares()
@@ -18,19 +18,23 @@ GameLogic::GameLogic(const std::shared_ptr<dae::GameObject>& gameObject, float s
 	, m_GameOverTime(2.f)
 	, m_GameOverCounter()
 	, m_GameOverTitle()
+	, m_WithVisuals(withVisuals)
 {
 	Initialize();
 }
 
 void GameLogic::Initialize()
 {
-	// Create the game over title and hide it, if it's not a restart
-	if (m_GameOverTitle == nullptr)
+	if (m_WithVisuals)
 	{
-		auto gameOverTitleGO = MakeGameOverTitle();
-		m_GameOverTitle = gameOverTitleGO->GetComponent<dae::TextComponent>();
-		m_GameOverTitle->SetHidden(true);
-		dae::SceneManager::GetInstance().GetCurrentScene()->Add(gameOverTitleGO);
+		// Create the game over title and hide it, if it's not a restart (and if the game has visuals)
+		if (m_GameOverTitle == nullptr)
+		{
+			auto gameOverTitleGO = MakeGameOverTitle();
+			m_GameOverTitle = gameOverTitleGO->GetComponent<dae::TextComponent>();
+			m_GameOverTitle->SetHidden(true);
+			dae::SceneManager::GetInstance().GetCurrentScene()->Add(gameOverTitleGO);
+		}
 	}
 	
 	// Initialize the vector
@@ -52,15 +56,24 @@ void GameLogic::Update(const float deltaTime)
 {
 	if(m_GameOver)
 	{
-		if (m_GameOverTitle->GetHidden() == true)
-			m_GameOverTitle->SetHidden(false);
-		
-		m_GameOverCounter += deltaTime;
-		if(m_GameOverCounter > m_GameOverTime)
+		// If game over, restart the game after a counter (if the game has visuals)
+		if (m_WithVisuals)
 		{
-			m_GameOverTitle->SetHidden(true);
+			if (m_GameOverTitle->GetHidden() == true)
+				m_GameOverTitle->SetHidden(false);
+
+			m_GameOverCounter += deltaTime;
+			if (m_GameOverCounter > m_GameOverTime)
+			{
+				m_GameOverTitle->SetHidden(true);
+				m_GameOver = false;
+				m_GameOverCounter = 0.f;
+				RestartGame();
+			}
+		}
+		else
+		{
 			m_GameOver = false;
-			m_GameOverCounter = 0.f;
 			RestartGame();
 		}
 	}
@@ -87,7 +100,7 @@ void GameLogic::CreateNumberSquare(int value, int rowIdx, int colIdx)
 	}
 
 	m_FreeSquares.erase(std::remove(m_FreeSquares.begin(), m_FreeSquares.end(), newSquareIdx), m_FreeSquares.end());
-	const auto newNumberSquareGO = MakeNumberSquare(newSquareValue, newSquareIdx.first, newSquareIdx.second);
+	const auto newNumberSquareGO = MakeNumberSquare(newSquareValue, newSquareIdx.first, newSquareIdx.second, m_WithVisuals);
 	dae::SceneManager::GetInstance().GetCurrentScene()->Add(newNumberSquareGO);
 	m_NumberSquaresVector->push_back(newNumberSquareGO);
 }
@@ -180,7 +193,7 @@ int GameLogic::SwipeLeft()
 						m_FreeSquares.push_back(freedSpace);
 						m_Score += newValue;
 						m_Subject->Notify(dae::Event::ScoreIncreased);
-						reward++;
+						reward += log2(newValue);
 						
 						// And change the bool
 						piecesMoved = true;
@@ -240,9 +253,11 @@ int GameLogic::SwipeLeft()
 			m_FreeSquares.erase(std::remove(m_FreeSquares.begin(), m_FreeSquares.end(), newOccupiedSquare), m_FreeSquares.end());
 
 
-		// If anything moved, create a new random square
+		// If anything moved, create a new random square (if not, reward a penalty)
 		if (piecesMoved)
 			CreateNumberSquare();
+		else
+			reward--;
 
 		// If, with the new piece, the board is now full
 		if (m_FreeSquares.empty())
@@ -339,7 +354,7 @@ int GameLogic::SwipeRight()
 						m_FreeSquares.push_back(freedSpace);
 						m_Score += newValue;
 						m_Subject->Notify(dae::Event::ScoreIncreased);
-						reward++;
+						reward += log2(newValue);
 
 						// And change the bool
 						piecesMoved = true;
@@ -399,9 +414,11 @@ int GameLogic::SwipeRight()
 			m_FreeSquares.erase(std::remove(m_FreeSquares.begin(), m_FreeSquares.end(), newOccupiedSquare), m_FreeSquares.end());
 
 
-		// If anything moved, create a new random square
+		// If anything moved, create a new random square (if not, reward a penalty)
 		if (piecesMoved)
 			CreateNumberSquare();
+		else
+			reward--;
 
 		// If, with the new piece, the board is now full
 		if (m_FreeSquares.empty())
@@ -497,7 +514,7 @@ int GameLogic::SwipeUp()
 						m_FreeSquares.push_back(freedSpace);
 						m_Score += newValue;
 						m_Subject->Notify(dae::Event::ScoreIncreased);
-						reward++;
+						reward += log2(newValue);
 
 						// And change the bool
 						piecesMoved = true;
@@ -557,9 +574,11 @@ int GameLogic::SwipeUp()
 			m_FreeSquares.erase(std::remove(m_FreeSquares.begin(), m_FreeSquares.end(), newOccupiedSquare), m_FreeSquares.end());
 
 
-		// If anything moved, create a new random square
+		// If anything moved, create a new random square (if not, reward a penalty)
 		if (piecesMoved)
 			CreateNumberSquare();
+		else
+			reward--;
 
 		// If, with the new piece, the board is now full
 		if (m_FreeSquares.empty())
@@ -655,7 +674,7 @@ int GameLogic::SwipeDown()
 						m_FreeSquares.push_back(freedSpace);
 						m_Score += newValue;
 						m_Subject->Notify(dae::Event::ScoreIncreased);
-						reward++;
+						reward += log2(newValue);
 
 						// And change the bool
 						piecesMoved = true;
@@ -715,9 +734,11 @@ int GameLogic::SwipeDown()
 			m_FreeSquares.erase(std::remove(m_FreeSquares.begin(), m_FreeSquares.end(), newOccupiedSquare), m_FreeSquares.end());
 
 
-		// If anything moved, create a new random square
+		// If anything moved, create a new random square (if not, reward a penalty)
 		if (piecesMoved)
 			CreateNumberSquare();
+		else
+			reward--;
 
 		// If, with the new piece, the board is now full
 		if (m_FreeSquares.empty())
@@ -952,7 +973,7 @@ std::vector<int>* GameLogic::GetGameState() const
 			auto* squareComp = m_NumberSquaresVector->operator[](vectorIdx)->GetComponent<NumberSquare>();
 			if (squareComp->GetColPosIdx() == i % 5 && squareComp->GetRowPosIdx() == i / 5)
 			{
-				returnVector->push_back(squareComp->GetValue());
+				returnVector->push_back(log2(squareComp->GetValue()));
 
 				if (int(m_NumberSquaresVector->size()) > vectorIdx + 1)
 					vectorIdx++;
