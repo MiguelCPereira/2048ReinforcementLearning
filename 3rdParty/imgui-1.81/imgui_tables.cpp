@@ -40,7 +40,7 @@ Index of this file:
 //    | TableLoadSettings()                     - on settings load
 //    | TableBeginApplyRequests()               - apply queued resizing/reordering/hiding requests
 //    | - TableSetColumnWidth()                 - apply resizing width (for mouse resize, often requested by previous frame)
-//    |    - TableUpdateColumnsWeightFromWidth()- recompute columns weights (of stretch columns) from their respective width
+//    |    - TableUpdateColumnsWeightFromWidth()- recompute columns m_ConnectionWeights (of stretch columns) from their respective width
 // - TableSetupColumn()                         user submit columns details (optional)
 // - TableSetupScrollFreeze()                   user submit scroll freeze information (optional)
 //-----------------------------------------------------------------------------
@@ -564,7 +564,7 @@ void ImGui::TableBeginApplyRequests(ImGuiTable* table)
         table->ResizedColumn = -1;
 
         // Process auto-fit for single column, which is a special case for stretch columns and fixed columns with FixedSame policy.
-        // FIXME-TABLE: Would be nice to redistribute available stretch space accordingly to other weights, instead of giving it all to siblings.
+        // FIXME-TABLE: Would be nice to redistribute available stretch space accordingly to other m_ConnectionWeights, instead of giving it all to siblings.
         if (table->AutoFitSingleColumn != -1)
         {
             TableSetColumnWidth(table->AutoFitSingleColumn, table->Columns[table->AutoFitSingleColumn].WidthAuto);
@@ -791,7 +791,7 @@ void ImGui::TableUpdateLayout(ImGuiTable* table)
 
     // [Part 3] Fix column flags and record a few extra information.
     float sum_width_requests = 0.0f;        // Sum of all width for fixed and auto-resize columns, excluding width contributed by Stretch columns but including spacing/padding.
-    float stretch_sum_weights = 0.0f;       // Sum of all weights for stretch columns.
+    float stretch_sum_weights = 0.0f;       // Sum of all m_ConnectionWeights for stretch columns.
     table->LeftMostStretchedColumn = table->RightMostStretchedColumn = -1;
     for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
     {
@@ -2108,7 +2108,7 @@ void ImGui::TableUpdateColumnsWeightFromWidth(ImGuiTable* table)
     }
     IM_ASSERT(visible_weight > 0.0f && visible_width > 0.0f);
 
-    // Apply new weights
+    // Apply new m_ConnectionWeights
     for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
     {
         ImGuiTableColumn* column = &table->Columns[column_n];

@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <torch/torch.h> // Uncomment this include for the program to run without crashing (and 2 others on PlayerAI.cpp and QLearningTrainer.h)
+//#include <torch/torch.h> // Uncomment this include for the program to run without crashing (and 2 others on PlayerAI.cpp and QLearningTrainer.h)
 //#define NOMINMAX
 
 class LinearQNet /*: public torch::nn::Module*/

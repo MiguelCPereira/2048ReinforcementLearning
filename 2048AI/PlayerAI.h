@@ -4,8 +4,8 @@
 #include "BaseComponent.h"
 #include "QLearningTrainer.h"
 
+class NeuralNetwork;
 class GameLogic;
-class LinearQNet;
 
 class PlayerAI final : public dae::BaseComponent
 {
@@ -26,7 +26,7 @@ private:
 	int CalculateAction(std::vector<int>* oldState) const;
 	void Remember(TrainingInfo* trainingInfo);
 	void TrainStepWithSample();
-	void Train();
+	void MakeNextMove();
 	
 	std::shared_ptr<dae::GameObject> m_GameObject{};
 	GameLogic* m_GameLogic{};
@@ -36,13 +36,13 @@ private:
 	int m_Highscore;
 	int m_NrPlayedGames;
 
-	const double m_LearningRate;
+	const float m_LearningRate;
 	const int m_RandomFactor;
 	float m_Discount;
 	const size_t m_MaxMemory;
 	const size_t m_TrainingBatchSize;
 	std::deque<TrainingInfo*> m_Memory;
-	LinearQNet* m_Model;
+	NeuralNetwork* m_Model;
 	QLearningTrainer* m_Trainer;
 };
 
