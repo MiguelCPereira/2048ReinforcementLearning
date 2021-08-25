@@ -15,7 +15,7 @@ GameLogic::GameLogic(const std::shared_ptr<dae::GameObject>& gameObject, float s
 	, m_Score()
 	, m_SquareSpacing(squareSpacing)
 	, m_GameOver(false)
-	, m_GameOverTime(2.f)
+	, m_GameOverTime(3.f)
 	, m_GameOverCounter()
 	, m_GameOverTitle()
 	, m_WithVisuals(withVisuals)

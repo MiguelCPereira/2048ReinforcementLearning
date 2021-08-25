@@ -23,7 +23,7 @@ NeuralNetwork::NeuralNetwork(unsigned int inputSize, unsigned int hiddenSize, un
         else
             m_NeuronLayers.push_back(new RowVector(m_Topology[i] + 1));
 
-        // Initialize cache and delta vectors with the same size as the neuron layers one
+        // Initialize cache and delta vectors with rowVectors of the current size of the neuron layers
         m_CacheLayers.push_back(new RowVector(m_NeuronLayers.size()));
         m_NeuronError.push_back(new RowVector(m_NeuronLayers.size()));
 
@@ -32,8 +32,8 @@ NeuralNetwork::NeuralNetwork(unsigned int inputSize, unsigned int hiddenSize, un
         {
             // Get a reference to the last added neuron and cache layers
 			// So they're initialized with 1
-            m_NeuronLayers.back()->coeffRef(m_Topology[i]) = 1;
-            m_CacheLayers.back()->coeffRef(m_Topology[i]) = 1;
+            m_NeuronLayers.back()->coeffRef(m_Topology[i]) = 1.0;
+            m_CacheLayers.back()->coeffRef(m_Topology[i]) = 1.0;
         }
 
         // Initialize the connection weights matrix
@@ -48,7 +48,7 @@ NeuralNetwork::NeuralNetwork(unsigned int inputSize, unsigned int hiddenSize, un
             	// Set the column to zero
                 m_ConnectionWeights.back()->col(m_Topology[i]).setZero();
             	// And set the connection between the last layer's neuron and the current one to 1
-                m_ConnectionWeights.back()->coeffRef(m_Topology[i - 1], m_Topology[i]) = 1;
+                m_ConnectionWeights.back()->coeffRef(m_Topology[i - 1], m_Topology[i]) = 1.0;
             }
             else // For the last layer
             {
