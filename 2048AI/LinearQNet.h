@@ -1,7 +1,10 @@
 #pragma once
 #include <string>
-//#include <torch/torch.h> // Uncomment this include for the program to run without crashing (and 2 others on PlayerAI.cpp and QLearningTrainer.h)
-//#define NOMINMAX
+//#include <torch/torch.h>
+
+
+// This is an unused class, reminiscent of a first implementation of the Neural Network concept dependent on TorchLib
+// (a 3rd party Machine Learning framework). Duo to some issues I had with implementing said library, I ended up scratching it
 
 class LinearQNet /*: public torch::nn::Module*/
 {
@@ -17,7 +20,3 @@ private:
 	//torch::nn::Linear m_LinearA;
     //torch::nn::Linear m_LinearB;
 };
-
-// This class, in its current state, is still majorly influenced by the following video:
-// https://www.youtube.com/watch?v=VGkcmBaeAGM
-

@@ -41,7 +41,7 @@ void SetUpGame()
 	scene.Add(MakeScoreDisplay(gameLogicGO));
 
 	// Set up AI
-	scene.Add(MakePlayerAI(gameLogicGO, 0.f));
+	scene.Add(MakePlayerAI(gameLogicGO, 0.1f));
 
 	// Set up the temporary player input --- to set this one up, comment out the previous line
 	//SetUpPlayerInput(gameLogicGO);
