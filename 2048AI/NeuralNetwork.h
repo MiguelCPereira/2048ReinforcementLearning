@@ -14,7 +14,8 @@ class NeuralNetwork
 {
 public:
     //NeuralNetwork(std::vector<unsigned int> topology, float learningRate = 0.005f);
-    NeuralNetwork(unsigned int inputSize, unsigned int hiddenSize, unsigned int outputSize, float learningRate = 0.005f);
+    NeuralNetwork(unsigned int inputSize, unsigned int hiddenSize, unsigned int outputSize,
+        unsigned int nrHiddenLayers, float learningRate = 0.0005f);
 
     // Forward the propagation of data
     RowVector PropagateForward(RowVector& input);

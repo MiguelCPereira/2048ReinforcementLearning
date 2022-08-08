@@ -16,7 +16,7 @@ PlayerAI::PlayerAI(const std::shared_ptr<dae::GameObject>& gameObject, const std
 	, m_Highscore()
 	, m_NrPlayedGames()
 
-	, m_LearningRate(0.001f)
+	, m_LearningRate(0.0001f)
 	, m_RandomFactor(100) // Decreasing amount of random moves the AI will make for exploration's sake
 	, m_MinRandomAmount(20) // The minimum amount the random factor can decrease to
 	, m_Discount(0.9f) // The percentage in which the QLearningTrainer algorithm will take the future reward in account compared to the current reward
@@ -28,7 +28,7 @@ PlayerAI::PlayerAI(const std::shared_ptr<dae::GameObject>& gameObject, const std
 {
 	m_GameLogic = gameLogicGObj->GetComponent<GameLogic>();
 	// 16 inputs for each square in the board, an approximated hiddenSize of 256 and 4 possible outputs for each swipe type
-	m_Model = new NeuralNetwork(16, 256, 4, m_LearningRate);
+	m_Model = new NeuralNetwork(16, 32, 4, 5, m_LearningRate);
 	m_Trainer = new QLearningTrainer(m_Model, m_Discount);
 }
 
@@ -38,7 +38,6 @@ void PlayerAI::Initialize()
 
 void PlayerAI::Update(const float deltaTime)
 {
-	// Right now, the AI only plays randomly
 	if (m_GameLogic->GetGameOver() == false)
 	{
 		if (m_TimeBetweenMoves > 0.f)

@@ -6,14 +6,22 @@
 // https://www.geeksforgeeks.org/ml-neural-network-implementation-in-c-from-scratch/
 
 //NeuralNetwork::NeuralNetwork(std::vector<unsigned int> topology, float learningRate)
-NeuralNetwork::NeuralNetwork(unsigned int inputSize, unsigned int hiddenSize, unsigned int outputSize, float learningRate)
-	: m_Topology({inputSize, hiddenSize, outputSize})
+NeuralNetwork::NeuralNetwork(unsigned int inputSize, unsigned int hiddenSize, unsigned int outputSize,
+    unsigned int nrHiddenLayers, float learningRate)
+	: m_Topology()
 	, m_LearningRate(learningRate)
 	, m_NeuronLayers()
 	, m_CacheLayers()
 	, m_NeuronError()
 	, m_ConnectionWeights()
 {
+    m_Topology.push_back(inputSize);
+
+    for (auto i = 0; i < nrHiddenLayers; i++)
+        m_Topology.push_back(hiddenSize);
+
+    m_Topology.push_back(outputSize);
+
     for (unsigned int i = 0; i < m_Topology.size(); i++)
     {
         // Initialize all the neuron layers with the given nr of neurons
