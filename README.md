@@ -32,7 +32,7 @@ The neural network is essentially the bot's "brain" - being responsible, as desc
 
 The way it works practically is through multiple layers of a parameterizable number of neurons, which create connections and propagate between themselves to transform the given original input (the game state) into the final output (the predicted move). Neurons are, to put it simply, a set of inputs, a set of weights, and an activation function which transform whatever input they're given into a new output, which can then be picked up and processed by the corresponding neuron in the next layer, progressively optimizing the carried value.
 
-In the network used in this project, the first layer has a size of 16, 1 for each house in the board (as I describe better in the [Game State and Reward](#game-state-and-reward)) section) and the final one 4, 1 for each possible move. These 2 correspond to the initial input and final output, and between them there's 256 hidden layers. Each neural layer is stored in a vector as a RowVectorXf (from the [Eigen library](https://eigen.tuxfamily.org/index.php?title=Main_Page)), one more RowVectorXF vector stores the inactivated values of layers, another one stores the error contribution of each neuron, and finally a last matrix vector stores the weights of each connection. All of these are updated with every training step.
+In the network used in this project, the first layer has a size of 16, 1 for each house in the board (as I describe better in the [Game State and Reward](#game-state-and-reward)) section) and the final one 4, 1 for each possible move. These 2 correspond to the initial input and final output, and between them there's 5 hidden layers. Each neural layer is stored in a vector as a RowVectorXf (from the [Eigen library](https://eigen.tuxfamily.org/index.php?title=Main_Page)), one more RowVectorXF vector stores the inactivated values of layers, another one stores the error contribution of each neuron, and finally a last matrix vector stores the weights of each connection. All of these are updated with every training step.
 
 
 
@@ -52,14 +52,15 @@ The bot could restrain itself to learn only from the direct reward of each curre
 
 ## Results
 
-After 1150 episodes, in its current state, the bot didn't show much of a significant improvement, which was honestly underwhelming. As much as I iterated with different possible values, the scores average increased only slightly from 749 (at the 30th game) to 855 (at the last one), and the bot seemed to not learn any basic game strategies, like preserving high-value pieces in corners. I tried:
+Changes have been made to the bot since then, but during the last testing session, consisting of 1150 episodes, the AI's behaviour didn't show much of a significant improvement, which was honestly underwhelming. As much as I iterated with different possible values, the scores average increased only slightly from 749 (at the 30th game) to 855 (at the last one), and the bot seemed to not learn any basic game strategies, like preserving high-value pieces in corners. At the time, I tried:
 - Changing the learning rate between 0.001 and 0,005 - settling on 0.001;
 - Changing the randomness factor between 50 and 120, as well as capping it at 10% or letting it go to 0% - setting on 100 with a 10% cap;
-- Adding from 100 up to 300 hidden layers to the neural network - settling on 256;
+- Adding from 100 up to 300 hidden layers to the neural network - settling on 256 (which I realize now was a mistake, more on that bellow);
 - Coding the game state as a vector of 16 ints, one for each square's current value, and still 16 but with the log2 of each value (so 2 becomes 1, 4-2, 8-3, 16-4, etc) - settling on the 2nd option;
 - And making the move reward the score, the total value of squares in the board, the total ammount of collapsed pieces, and the sum of the log2 of the collapsed pieces value - settling on the last one.
 
-All the scores from this last unsuccessful train session can be found here:
+Since that last training session, I realized my layer amount was way too big for the scope of the requested task, so I decreased it down to 5, each with 32 neurons.
+All the scores from this outdated session can be found here:
 
 
 ![Score Graph](https://github.com/MiguelCPereira/2048ReinforcementLearning/blob/main/Data/Training%20Chart.png)
